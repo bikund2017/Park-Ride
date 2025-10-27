@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import axios from 'axios';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import '../map-fix.css';
 

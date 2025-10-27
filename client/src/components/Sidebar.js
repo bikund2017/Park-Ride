@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReportForm from './ReportForm';
 import LoadingSpinner from './LoadingSpinner';
 import RoutePlanner from './RoutePlanner';
@@ -50,16 +49,20 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
   }, [activeTab, onRefreshReports]);
 
   // Fetch favorites when favorites tab is active with timeout
+  const handleRefreshFavorites = useCallback(() => {
+    if (onRefreshFavorites && !isLoadingFavorites) {
+      onRefreshFavorites();
+    }
+  }, [onRefreshFavorites, isLoadingFavorites]);
+
   useEffect(() => {
-    if (activeTab === 'favorites' && onRefreshFavorites && !isLoadingFavorites) {
+    if (activeTab === 'favorites' && handleRefreshFavorites) {
       // Add a small delay to prevent rapid successive calls
-      const timeoutId = setTimeout(() => {
-        onRefreshFavorites();
-      }, 100);
+      const timeoutId = setTimeout(handleRefreshFavorites, 100);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [activeTab]); // Remove onRefreshFavorites from dependencies to prevent infinite loop
+  }, [activeTab, handleRefreshFavorites]);
 
   return (
     <div className="sidebar-modern">

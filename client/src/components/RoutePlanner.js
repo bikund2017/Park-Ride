@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import './RoutePlanner.css';
 
@@ -20,8 +19,8 @@ const RoutePlanner = ({ parkingData, transitData }) => {
     try {
       // Simulate route calculation with available parking and transit data
       const availableParking = parkingData.filter(lot => lot.availableSpots > 0);
-      const metroStations = transitData.filter(v => v.vehicleType === 'metro');
-      const busStations = transitData.filter(v => v.vehicleType === 'bus');
+      // const metroStations = transitData.filter(v => v.vehicleType === 'metro');
+      // const busStations = transitData.filter(v => v.vehicleType === 'bus');
 
       // Simple route calculation logic
       const calculatedRoutes = availableParking.slice(0, 3).map((parkingLot, index) => {
