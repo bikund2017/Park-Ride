@@ -9,16 +9,13 @@ export const protect = async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
-      // Get token from header
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify token
       if (!process.env.JWT_SECRET) {
         return res.status(500).json({ message: 'JWT_SECRET not configured' });
       }
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from the token
       const userSnapshot = await User.collection.doc(decoded.id).get();
       
       if (!userSnapshot.exists) {

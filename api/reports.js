@@ -1,8 +1,6 @@
-// Vercel API route for reports
 import { db } from '../firebase.js';
 
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -19,12 +17,10 @@ export default async function handler(req, res) {
       
       let query = db.collection('reports');
       
-      // Filter by category if provided
       if (category && category !== 'all') {
         query = query.where('category', '==', category);
       }
       
-      // Apply ordering and limit
       query = query.orderBy('timestamp', 'desc').limit(parseInt(limit));
       
       const reportsSnapshot = await query.get();
@@ -46,7 +42,6 @@ export default async function handler(req, res) {
         });
       });
       
-      // Client-side search if search query provided
       if (search && search.trim()) {
         const searchLower = search.toLowerCase();
         reports = reports.filter(report => 

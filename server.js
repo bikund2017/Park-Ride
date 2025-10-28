@@ -104,28 +104,24 @@ const io = new Server(server, {
   maxHttpBufferSize: 1e8 // 100MB max message size (for large data transfers)
 });
 
-// Data simulation with rate limiting
 let parkingLots = [];
 let transitVehicles = [];
 let lastApiCall = 0;
-const API_RATE_LIMIT_MS = 1000; // 1 second rate limit
+const API_RATE_LIMIT_MS = 1000;
 
 console.log('📡 Setting up Delhi Transit API integration...');
 
-// Delhi Transit API Functions - Using Real API Integration
 async function fetchDelhiTransitData(silent = false) {
-  // Rate limiting
   const now = Date.now();
   if (now - lastApiCall < API_RATE_LIMIT_MS) {
     if (!silent) console.log('⚠️ Rate limiting API calls...');
-    return transitVehicles; // Return cached data
+    return transitVehicles;
   }
   lastApiCall = now;
 
   try {
     if (!silent) console.log('🔄 Attempting to fetch REAL Delhi transit data from APIs...');
     
-    // Try to fetch real data from multiple sources
     const realData = await transitAPI.fetchAllRealTransitData();
     
     if (realData && realData.length > 0) {
@@ -141,7 +137,6 @@ async function fetchDelhiTransitData(silent = false) {
     if (!silent) console.log('⚠️ API fetch error:', error.message);
   }
 
-  // Fallback to simulated data
   if (!silent) console.log('📊 Using simulated data as fallback');
   return generateFallbackTransitData();
 }
@@ -348,12 +343,9 @@ async function generateData() {
   transitVehicles = await fetchDelhiTransitData();
 }
 
-// Track if we're using real API data or fallback
 let usingRealData = false;
 
-// Update function
 async function updateData() {
-  // Update parking availability
   parkingLots.forEach(lot => {
     const currentSpots = lot.availableSpots;
     const maxChange = Math.floor(lot.capacity * 0.05);
@@ -361,13 +353,10 @@ async function updateData() {
     lot.availableSpots = Math.max(0, Math.min(lot.capacity, currentSpots + change));
   });
 
-  // Only fetch real API data every 5 minutes (300000 ms) when in fallback mode
-  // When real APIs work, fetch every 30 seconds
   const now = Date.now();
-  const apiCheckInterval = usingRealData ? 30000 : 300000; // 30 sec if real data, 5 min if fallback
+  const apiCheckInterval = usingRealData ? 30000 : 300000;
   
   if (!updateData.lastApiCall || (now - updateData.lastApiCall) > apiCheckInterval) {
-    // Use silent mode when checking APIs frequently in fallback mode
     const silent = !usingRealData && apiCheckInterval === 300000;
     const fetchedData = await fetchDelhiTransitData(silent);
     const isRealData = fetchedData && fetchedData.length > 0 && !fetchedData[0].id?.startsWith('metro-');
@@ -378,7 +367,6 @@ async function updateData() {
     }
     updateData.lastApiCall = now;
   } else {
-    // Small position updates for existing vehicles
     transitVehicles.forEach(vehicle => {
       if (vehicle.routePath && vehicle.currentStopIndex !== undefined) {
         vehicle.currentStopIndex = (vehicle.currentStopIndex + 1) % vehicle.routePath.length;
@@ -387,7 +375,6 @@ async function updateData() {
     });
   }
 
-  // Emit to all clients
   io.emit('update-data', { parkingLots, transitVehicles });
   
   const timestamp = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -395,7 +382,6 @@ async function updateData() {
   console.log(`🔄 Delhi NCR data updated at ${timestamp} - ${transitVehicles.length} vehicles ${dataSource}`);
 }
 
-// Socket.IO connections
 io.on('connection', (socket) => {
   console.log(`👤 New client connected: ${socket.id}`);
   socket.emit('update-data', { parkingLots, transitVehicles });
@@ -405,11 +391,9 @@ io.on('connection', (socket) => {
   });
 });
 
-// Image upload endpoint with Multer error handling and local fallback
 app.post('/api/upload-image', (req, res) => {
   upload.single('image')(req, res, async (err) => {
     if (err) {
-      // Multer errors (e.g., file too large, wrong type)
       const isSize = err.code === 'LIMIT_FILE_SIZE';
       console.error('❌ Multer error:', err.message || err);
       return res.status(isSize ? 413 : 400).json({ message: isSize ? 'Image too large (max 5MB)' : 'Invalid image upload' });
@@ -435,12 +419,10 @@ app.post('/api/upload-image', (req, res) => {
         return res.status(400).json({ message: 'No image file provided' });
       }
 
-      // Always prefer local storage for stability (Cloudinary optional)
       if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'park-ride') {
         return await saveLocalAndRespond();
       }
 
-      // Try Cloudinary upload, fallback to local on error
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           {
@@ -466,36 +448,29 @@ app.post('/api/upload-image', (req, res) => {
   });
 });
 
-// API Routes
 app.post('/api/report', async (req, res) => {
   try {
     const { location, description, category, imageUrl } = req.body;
     
-    // Validate location format
     if (!location || !Array.isArray(location) || location.length !== 2) {
       return res.status(400).json({ message: 'Invalid location format. Expected [latitude, longitude]' });
     }
     
-    // Validate coordinates are numbers
     const [lat, lng] = location;
     if (typeof lat !== 'number' || typeof lng !== 'number') {
       return res.status(400).json({ message: 'Location must contain numeric coordinates' });
     }
     
-    // Validate coordinate ranges (Delhi NCR approximate bounds)
     if (lat < 28.3 || lat > 28.9 || lng < 76.8 || lng > 77.4) {
       return res.status(400).json({ message: 'Coordinates must be within Delhi NCR region' });
     }
     
-    // Check and sanitize description
     if (!description?.trim()) {
       return res.status(400).json({ message: 'Description is required' });
     }
     
-    // Sanitize description to prevent XSS attacks
     const cleanDescription = validator.escape(description.trim());
     
-    // Validate description length
     if (cleanDescription.length < 10) {
       return res.status(400).json({ message: 'Description must be at least 10 characters long' });
     }
@@ -504,7 +479,6 @@ app.post('/api/report', async (req, res) => {
       return res.status(400).json({ message: 'Description must be less than 1000 characters' });
     }
     
-    // Validate category
     const validCategories = ['parking', 'traffic', 'facility', 'metro', 'safety', 'general'];
     const validCategory = validCategories.includes(category) ? category : 'general';
     
@@ -541,12 +515,10 @@ app.get('/api/reports', async (req, res) => {
     
     let query = db.collection('reports');
     
-    // Filter by category if provided
     if (category && category !== 'all') {
       query = query.where('category', '==', category);
     }
     
-    // Apply ordering and limit
     query = query.orderBy('timestamp', 'desc').limit(parseInt(limit));
     
     const reportsSnapshot = await query.get();
@@ -568,7 +540,6 @@ app.get('/api/reports', async (req, res) => {
       });
     });
     
-    // Client-side search if search query provided
     if (search && search.trim()) {
       const searchLower = search.toLowerCase();
       reports = reports.filter(report => 
@@ -587,7 +558,6 @@ app.get('/api/reports', async (req, res) => {
   }
 });
 
-// Upvote a report
 app.post('/api/reports/:id/upvote', async (req, res) => {
   try {
     const { id } = req.params;
@@ -608,7 +578,6 @@ app.post('/api/reports/:id/upvote', async (req, res) => {
   }
 });
 
-// Mark report as resolved
 app.post('/api/reports/:id/resolve', async (req, res) => {
   try {
     const { id } = req.params;
@@ -631,7 +600,6 @@ app.post('/api/reports/:id/resolve', async (req, res) => {
   }
 });
 
-// Delete report (admin/moderation)
 app.delete('/api/reports/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -681,8 +649,6 @@ app.get('/api/transit-info', (req, res) => {
   });
 });
 
-// New endpoint: API Health Check
-// Favorites endpoints
 app.post('/api/favorites', async (req, res) => {
   try {
     const { parkingLotId, userId = 'anonymous' } = req.body;
@@ -695,14 +661,12 @@ app.post('/api/favorites', async (req, res) => {
       return res.status(400).json({ message: 'Parking lot ID must be a number' });
     }
     
-    // Check if parking lot exists
     const parkingLot = parkingLots.find(lot => Number(lot.id) === Number(parsedId));
     if (!parkingLot) {
       const availableIds = parkingLots.map(l => l.id);
       return res.status(404).json({ message: `Parking lot not found`, availableIds });
     }
     
-    // Add to favorites (using a simple in-memory store for now)
     const favorite = {
       id: `${userId}-${parsedId}`,
       userId,
@@ -711,7 +675,6 @@ app.post('/api/favorites', async (req, res) => {
       createdAt: new Date()
     };
     
-    // Store in Firestore
     await db.collection('favorites').doc(favorite.id).set(favorite);
     
     res.json({ message: 'Added to favorites', favorite });
@@ -734,7 +697,6 @@ app.get('/api/favorites/:userId', async (req, res) => {
       favorites.push(doc.data());
     });
     
-    // Sort by createdAt on the client side to avoid Firestore index requirement
     favorites.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     res.json({ favorites });
@@ -795,20 +757,17 @@ app.get('/api/health', async (req, res) => {
   res.json(health);
 });
 
-// Initialize and start
 async function initializeApplication() {
   try {
     console.log('🌟 Initializing Delhi NCR data...');
     await generateData();
     console.log(`✅ Generated ${parkingLots.length} parking lots and ${transitVehicles.length} transit vehicles`);
 
-    // Start real-time updates
     setInterval(updateData, 3000);
 
-    // Periodic full refresh - always uses verbose logging
     setInterval(async () => {
       console.log('🔄 Scheduled transit data refresh...');
-      const fetchedData = await fetchDelhiTransitData(false); // verbose
+      const fetchedData = await fetchDelhiTransitData(false);
       if (fetchedData && fetchedData.length > 0) {
         const isRealData = !fetchedData[0].id?.startsWith('metro-');
         usingRealData = isRealData;
@@ -823,7 +782,6 @@ async function initializeApplication() {
   }
 }
 
-// Error handling middleware (must be after all other middleware and routes)
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
@@ -833,14 +791,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
-  // Consider whether to crash the app or continue
-  // process.exit(1);
 });
 
-// Start the server
 const PORT = config.port;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running in ${config.nodeEnv} mode on port ${PORT}`);
@@ -850,7 +804,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📡 WebSocket: ${io ? 'Enabled' : 'Disabled'}`);
 });
 
-// Start the application
 initializeApplication().catch(error => {
   console.error('💥 Failed to initialize:', error.message);
   process.exit(1);

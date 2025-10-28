@@ -26,8 +26,8 @@ export default function handler(req, res) {
       }
     },
     data: {
-      transitVehicles: 19, // Simulated data
-      parkingLots: 12, // Simulated data
+      transitVehicles: 19,
+      parkingLots: 12,
       connectedClients: 0
     }
   };

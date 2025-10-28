@@ -5,17 +5,14 @@ const User = {
   collection: db.collection('users'),
 
   async create({ email, password, name, phone }) {
-    // Check if user already exists
     const userExists = await this.collection.where('email', '==', email).limit(1).get();
     if (!userExists.empty) {
       throw new Error('User already exists with this email');
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
     const userRef = await this.collection.add({
       email,
       password: hashedPassword,
