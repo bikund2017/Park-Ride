@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
 import MapView from './components/MapView';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Reports from './pages/Reports';
+import Favorites from './pages/Favorites';
+import About from './pages/About';
+import NotFound from './pages/NotFound';
 import './index.css';
 import './map-fix.css';
 
@@ -50,37 +57,52 @@ function App() {
     }
   };
 
-  // Fetch favorites function with debouncing
-  const fetchFavorites = async () => {
-    // Prevent multiple simultaneous calls
+  // Fetch favorites: only show blocking loader if we have no cached data
+  const favoritesFetchInFlight = useRef(false);
+  const lastFavoritesFetch = useRef(0);
+
+  const fetchFavorites = useCallback(async () => {
     if (isLoadingFavorites) return;
-    
+    const now = Date.now();
+    if (favoritesFetchInFlight.current) return;
+    if (now - lastFavoritesFetch.current < 8000) return; // rate limit 8s
+    const shouldBlock = favorites.length === 0;
+    let safetyTimer;
     try {
-      setIsLoadingFavorites(true);
+      favoritesFetchInFlight.current = true;
+      if (shouldBlock) {
+        setIsLoadingFavorites(true);
+        safetyTimer = setTimeout(() => setIsLoadingFavorites(false), 5000);
+      }
       const response = await axios.get('/api/favorites/anonymous');
       setFavorites(response.data.favorites || []);
     } catch (error) {
       console.error('Error fetching favorites:', error);
-      // Don't show error to user for rate limiting, just log it
       if (error.response?.status !== 429) {
         console.error('Favorites fetch error:', error);
       }
     } finally {
-      setIsLoadingFavorites(false);
+      lastFavoritesFetch.current = Date.now();
+      favoritesFetchInFlight.current = false;
+      if (shouldBlock) {
+        clearTimeout(safetyTimer);
+        setIsLoadingFavorites(false);
+      }
     }
-  };
+  }, [favorites.length, isLoadingFavorites]);
 
   // Add to favorites function
   const addToFavorites = async (parkingLotId) => {
     try {
       const response = await axios.post('/api/favorites', {
-        parkingLotId,
+        parkingLotId: Number(parkingLotId),
         userId: 'anonymous'
       });
       setFavorites(prev => [response.data.favorite, ...prev]);
     } catch (error) {
       console.error('Error adding to favorites:', error);
-      alert('Failed to add to favorites. Please try again.');
+      const serverMessage = error.response?.data?.message;
+      alert(serverMessage ? `Failed to add to favorites: ${serverMessage}` : 'Failed to add to favorites. Please try again.');
     }
   };
 
@@ -153,48 +175,80 @@ function App() {
   const trainCount = transitData.filter(v => v.vehicleType === 'train').length;
 
   return (
-    <div className="app-modern">
-      <Header 
-        isConnected={isConnected}
-        metroCount={metroCount}
-        busCount={busCount}
-        trainCount={trainCount}
-        parkingCount={parkingData.length}
-        dataSource={dataSource}
-      />
-      
-      <div className="main-container">
-        <div className="map-wrapper">
-          <MapView 
-            parkingData={parkingData} 
-            transitData={transitData}
-            onMapClick={handleMapClick}
-            reports={reports}
-            onUpvote={handleUpvote}
-          />
-        </div>
-        
-        <Sidebar 
-          parkingData={parkingData}
-          transitData={transitData}
-          selectedLocation={selectedLocation}
-          onClearLocation={handleClearLocation}
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <div className="app-modern">
+        <Navbar />
+        <Header 
+          isConnected={isConnected}
           metroCount={metroCount}
           busCount={busCount}
           trainCount={trainCount}
-          reports={reports}
-          onUpvote={handleUpvote}
-          onRefreshReports={fetchReports}
-          isLoadingReports={isLoadingReports}
-          isLoadingData={isLoadingData}
-          favorites={favorites}
-          onAddToFavorites={addToFavorites}
-          onRemoveFromFavorites={removeFromFavorites}
-          onRefreshFavorites={fetchFavorites}
-          isLoadingFavorites={isLoadingFavorites}
+          parkingCount={parkingData.length}
+          dataSource={dataSource}
         />
+        <Routes>
+          <Route 
+            path="/" 
+            element={(
+              <Home>
+                <div className="map-wrapper">
+                  <MapView 
+                    parkingData={parkingData} 
+                    transitData={transitData}
+                    onMapClick={handleMapClick}
+                    reports={reports}
+                    onUpvote={handleUpvote}
+                  />
+                </div>
+                <Sidebar 
+                  parkingData={parkingData}
+                  transitData={transitData}
+                  selectedLocation={selectedLocation}
+                  onClearLocation={handleClearLocation}
+                  metroCount={metroCount}
+                  busCount={busCount}
+                  trainCount={trainCount}
+                  reports={reports}
+                  onUpvote={handleUpvote}
+                  onRefreshReports={fetchReports}
+                  isLoadingReports={isLoadingReports}
+                  isLoadingData={isLoadingData}
+                  favorites={favorites}
+                  onAddToFavorites={addToFavorites}
+                  onRemoveFromFavorites={removeFromFavorites}
+                  onRefreshFavorites={fetchFavorites}
+                  isLoadingFavorites={isLoadingFavorites}
+                />
+              </Home>
+            )}
+          />
+          <Route 
+            path="/reports" 
+            element={(
+              <Reports 
+                reports={reports}
+                onUpvote={handleUpvote}
+                onRefreshReports={fetchReports}
+                isLoadingReports={isLoadingReports}
+              />
+            )} 
+          />
+          <Route 
+            path="/favorites" 
+            element={(
+              <Favorites 
+                favorites={favorites}
+                onRemoveFromFavorites={removeFromFavorites}
+                onRefreshFavorites={fetchFavorites}
+                isLoadingFavorites={isLoadingFavorites}
+              />
+            )}
+          />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 

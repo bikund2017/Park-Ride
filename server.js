@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { faker } from '@faker-js/faker';
@@ -8,11 +9,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import compression from 'compression';
-import rateLimit from 'express-rate-limit';
 import validator from 'validator';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
-import { createClient } from 'redis';
 import config from './config.js';
 import authRoutes from './routes/auth.js';
 import { db, admin } from './firebase.js';
@@ -26,105 +25,8 @@ console.log(`Environment: ${config.nodeEnv}`);
 
 const app = express();
 
-// Initialize Redis client (optional for development)
-let redisClient = null;
-let redisAvailable = false;
-
-// Only try to connect to Redis if explicitly configured
-if (process.env.REDIS_URL) {
-  try {
-    redisClient = createClient({
-      url: process.env.REDIS_URL
-    });
-
-    redisClient.on('error', (err) => {
-      console.log('⚠️ Redis Client Error (continuing without cache):', err.message);
-      redisAvailable = false;
-    });
-
-    redisClient.on('connect', () => {
-      console.log('✅ Redis Client Connected');
-      redisAvailable = true;
-    });
-
-    // Try to connect to Redis, but don't fail if it's not available
-    await redisClient.connect().catch((err) => {
-      console.log('⚠️ Redis not available, continuing without caching');
-      redisAvailable = false;
-    });
-  } catch (error) {
-    console.log('⚠️ Redis initialization failed, continuing without caching');
-    redisAvailable = false;
-  }
-} else {
-  console.log('ℹ️ Redis not configured, running without caching');
-}
-
-// Cache helper functions
-const cacheKey = (prefix, ...params) => `${prefix}:${params.join(':')}`;
-const CACHE_TTL = 300; // 5 minutes
-
-const getFromCache = async (key) => {
-  if (!redisAvailable || !redisClient) {
-    return null;
-  }
-  try {
-    const cached = await redisClient.get(key);
-    return cached ? JSON.parse(cached) : null;
-  } catch (error) {
-    console.error('❌ Cache get error:', error);
-    return null;
-  }
-};
-
-const setCache = async (key, data, ttl = CACHE_TTL) => {
-  if (!redisAvailable || !redisClient) {
-    return;
-  }
-  try {
-    await redisClient.setEx(key, ttl, JSON.stringify(data));
-  } catch (error) {
-    console.error('❌ Cache set error:', error);
-  }
-};
-
-const invalidateCache = async (pattern) => {
-  if (!redisAvailable || !redisClient) {
-    return;
-  }
-  try {
-    const keys = await redisClient.keys(pattern);
-    if (keys.length > 0) {
-      await redisClient.del(keys);
-    }
-  } catch (error) {
-    console.error('❌ Cache invalidation error:', error);
-  }
-};
-
-// Rate limiting configuration
-const reportLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // limit each IP to 5 requests per windowMs
-  message: {
-    error: 'Too many reports submitted from this IP, please try again after an hour.',
-    retryAfter: '1 hour'
-  },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-
-const favoritesLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // limit each IP to 10 requests per minute
-  message: 'Too many favorites requests from this IP, please try again later.'
-});
+console.log('🚀 Starting Park & Ride+ Delhi NCR Server...');
+console.log(`Environment: ${config.nodeEnv}`);
 
 // Security middleware
 app.disable('x-powered-by');
@@ -139,8 +41,12 @@ app.use(cors({
   credentials: config.cors.credentials
 }));
 
-// Apply general rate limiting to all API routes
-app.use('/api/', generalLimiter);
+// Ensure local uploads directory exists and serve it
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -499,44 +405,69 @@ io.on('connection', (socket) => {
   });
 });
 
-// Image upload endpoint
-app.post('/api/upload-image', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No image file provided' });
+// Image upload endpoint with Multer error handling and local fallback
+app.post('/api/upload-image', (req, res) => {
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      // Multer errors (e.g., file too large, wrong type)
+      const isSize = err.code === 'LIMIT_FILE_SIZE';
+      console.error('❌ Multer error:', err.message || err);
+      return res.status(isSize ? 413 : 400).json({ message: isSize ? 'Image too large (max 5MB)' : 'Invalid image upload' });
     }
 
-    // Upload to Cloudinary
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'image',
-          folder: 'park-and-ride-reports',
-          transformation: [
-            { width: 1200, height: 800, crop: 'limit' },
-            { quality: 'auto' }
-          ]
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(req.file.buffer);
-    });
+    const saveLocalAndRespond = async () => {
+      try {
+        if (!req.file) return res.status(400).json({ message: 'No image file provided' });
+        const ext = req.file.mimetype?.split('/')?.[1] || 'jpg';
+        const filename = `report_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const dest = path.join(uploadsDir, filename);
+        fs.writeFileSync(dest, req.file.buffer);
+        const url = `${req.protocol}://${req.get('host')}/uploads/${filename}`;
+        return res.json({ success: true, imageUrl: url, publicId: filename, storage: 'local' });
+      } catch (e) {
+        console.error('❌ Local image save failed:', e.message || e);
+        return res.status(500).json({ message: 'Error uploading image' });
+      }
+    };
 
-    res.json({
-      success: true,
-      imageUrl: result.secure_url,
-      publicId: result.public_id
-    });
-  } catch (error) {
-    console.error('❌ Error uploading image:', error);
-    res.status(500).json({ message: 'Error uploading image' });
-  }
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Always prefer local storage for stability (Cloudinary optional)
+      if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'park-ride') {
+        return await saveLocalAndRespond();
+      }
+
+      // Try Cloudinary upload, fallback to local on error
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'image',
+            folder: 'park-and-ride-reports',
+            transformation: [
+              { width: 1200, height: 800, crop: 'limit' },
+              { quality: 'auto' }
+            ]
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(req.file.buffer);
+      });
+
+      return res.json({ success: true, imageUrl: result.secure_url, publicId: result.public_id, storage: 'cloudinary' });
+    } catch (error) {
+      console.error('❌ Cloud upload failed, falling back to local:', error?.message || error);
+      return await saveLocalAndRespond();
+    }
+  });
 });
 
 // API Routes
-app.post('/api/report', reportLimiter, async (req, res) => {
+app.post('/api/report', async (req, res) => {
   try {
     const { location, description, category, imageUrl } = req.body;
     
@@ -594,9 +525,6 @@ app.post('/api/report', reportLimiter, async (req, res) => {
     const docRef = await db.collection('reports').add(report);
     console.log(`📝 New report submitted: ${docRef.id}`);
     
-    // Invalidate reports cache
-    await invalidateCache('reports:*');
-    
     res.status(201).json({ 
       message: 'Report submitted successfully',
       reportId: docRef.id 
@@ -610,16 +538,6 @@ app.post('/api/report', reportLimiter, async (req, res) => {
 app.get('/api/reports', async (req, res) => {
   try {
     const { category, search, limit = 100, skip = 0 } = req.query;
-    
-    // Create cache key
-    const cacheKeyStr = cacheKey('reports', category || 'all', search || 'none', limit, skip);
-    
-    // Try to get from cache first
-    const cachedData = await getFromCache(cacheKeyStr);
-    if (cachedData) {
-      console.log('📦 Serving reports from cache');
-      return res.json(cachedData);
-    }
     
     let query = db.collection('reports');
     
@@ -661,9 +579,6 @@ app.get('/api/reports', async (req, res) => {
     
     const responseData = { reports, total: reports.length };
     
-    // Cache the results
-    await setCache(cacheKeyStr, responseData);
-    
     console.log(`📊 Retrieved ${reports.length} reports${category ? ` (filtered by: ${category})` : ''}${search ? ` (search: ${search})` : ''}`);
     res.json(responseData);
   } catch (error) {
@@ -685,9 +600,6 @@ app.post('/api/reports/:id/upvote', async (req, res) => {
     
     const currentUpvotes = reportDoc.data().upvotes || 0;
     await reportRef.update({ upvotes: currentUpvotes + 1 });
-    
-    // Invalidate reports cache
-    await invalidateCache('reports:*');
     
     res.json({ message: 'Report upvoted successfully', upvotes: currentUpvotes + 1 });
   } catch (error) {
@@ -771,25 +683,30 @@ app.get('/api/transit-info', (req, res) => {
 
 // New endpoint: API Health Check
 // Favorites endpoints
-app.post('/api/favorites', favoritesLimiter, async (req, res) => {
+app.post('/api/favorites', async (req, res) => {
   try {
     const { parkingLotId, userId = 'anonymous' } = req.body;
     
-    if (!parkingLotId) {
+    if (parkingLotId === undefined || parkingLotId === null || parkingLotId === '') {
       return res.status(400).json({ message: 'Parking lot ID is required' });
+    }
+    const parsedId = typeof parkingLotId === 'string' ? Number(parkingLotId) : parkingLotId;
+    if (Number.isNaN(parsedId)) {
+      return res.status(400).json({ message: 'Parking lot ID must be a number' });
     }
     
     // Check if parking lot exists
-    const parkingLot = parkingLots.find(lot => lot.id === parkingLotId);
+    const parkingLot = parkingLots.find(lot => Number(lot.id) === Number(parsedId));
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking lot not found' });
+      const availableIds = parkingLots.map(l => l.id);
+      return res.status(404).json({ message: `Parking lot not found`, availableIds });
     }
     
     // Add to favorites (using a simple in-memory store for now)
     const favorite = {
-      id: `${userId}-${parkingLotId}`,
+      id: `${userId}-${parsedId}`,
       userId,
-      parkingLotId,
+      parkingLotId: parsedId,
       parkingLot,
       createdAt: new Date()
     };
@@ -804,7 +721,7 @@ app.post('/api/favorites', favoritesLimiter, async (req, res) => {
   }
 });
 
-app.get('/api/favorites/:userId', favoritesLimiter, async (req, res) => {
+app.get('/api/favorites/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -827,7 +744,7 @@ app.get('/api/favorites/:userId', favoritesLimiter, async (req, res) => {
   }
 });
 
-app.delete('/api/favorites/:userId/:parkingLotId', favoritesLimiter, async (req, res) => {
+app.delete('/api/favorites/:userId/:parkingLotId', async (req, res) => {
   try {
     const { userId, parkingLotId } = req.params;
     const favoriteId = `${userId}-${parkingLotId}`;

@@ -44,13 +44,18 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
     const formData = new FormData();
     formData.append('image', imageFile);
     
-    const response = await axios.post('/api/upload-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return response.data.imageUrl;
+    try {
+      const response = await axios.post('/api/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data.imageUrl;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Image upload failed';
+      alert(msg + '. Submitting report without image.');
+      return null;
+    }
   };
 
   const handleSubmit = async (e) => {

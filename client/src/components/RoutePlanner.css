@@ -9,6 +9,16 @@
   font-weight: 800;
 }
 
+.route-warning {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fdba74;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
 .route-inputs {
   display: flex;
   flex-direction: column;
@@ -35,6 +45,50 @@
   font-size: 1rem;
   transition: border-color 0.2s ease;
 }
+
+.input-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sub-btn {
+  background: #ffffff;
+  color: #065f46;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.sub-btn:hover { background: #f3f4f6; }
+
+.modes { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mode-btn {
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.mode-btn.active { background: #10b981; border-color: #10b981; color: #ffffff; }
+
+.recent { margin-bottom: 1rem; }
+.recent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.recent-item:hover { background: #f9fafb; }
 
 .route-input:focus {
   outline: none;

@@ -48,21 +48,13 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
     }
   }, [activeTab, onRefreshReports]);
 
-  // Fetch favorites when favorites tab is active with timeout
-  const handleRefreshFavorites = useCallback(() => {
-    if (onRefreshFavorites && !isLoadingFavorites) {
+  // Fetch favorites once when favorites tab becomes active; further refresh handled by global rate limit
+  useEffect(() => {
+    if (activeTab !== 'favorites') return;
+    if (onRefreshFavorites) {
       onRefreshFavorites();
     }
-  }, [onRefreshFavorites, isLoadingFavorites]);
-
-  useEffect(() => {
-    if (activeTab === 'favorites' && handleRefreshFavorites) {
-      // Add a small delay to prevent rapid successive calls
-      const timeoutId = setTimeout(handleRefreshFavorites, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [activeTab, handleRefreshFavorites]);
+  }, [activeTab, onRefreshFavorites]);
 
   return (
     <div className="sidebar-modern">
@@ -290,6 +282,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
           <RoutePlanner 
             parkingData={parkingData}
             transitData={transitData}
+            selectedLocation={selectedLocation}
           />
         )}
 
