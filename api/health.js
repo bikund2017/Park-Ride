@@ -1,4 +1,3 @@
-// Vercel API route for health check
 export default function handler(req, res) {
   const health = {
     status: 'operational',
