@@ -15,7 +15,7 @@ const config = {
   
   // API configuration
   delhiTransit: {
-    apiKey: process.env.DELHI_TRANSIT_API_KEY || 'mmmMLFBaiXLuPKuiDIwJuofBcVTSG6Qt',
+    apiKey: process.env.DELHI_TRANSIT_API_KEY,
     baseUrl: 'https://otd.delhi.gov.in/api/realtime',
   },
   
