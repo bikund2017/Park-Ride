@@ -1,10 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-// Temporarily use SimpleApp for debugging
-import SimpleApp from './SimpleApp.jsx';
-// import App from './App.jsx';
-// import ErrorBoundary from './components/ErrorBoundary.jsx';
+import App from './App.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 console.log('✅ Main.jsx loaded - React version:', React.version);
 console.log('✅ DOM ready, creating React root...');
@@ -18,7 +16,13 @@ try {
   console.log('✅ Root element found, rendering app...');
   const root = ReactDOM.createRoot(rootElement);
   
-  root.render(<SimpleApp />);
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
   
   console.log('✅ App rendered successfully');
 } catch (error) {

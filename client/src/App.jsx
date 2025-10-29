@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 // Socket.IO imported conditionally to avoid errors on Vercel
-import axios from 'axios';
+// REMOVED: import axios from 'axios'; - axios causes blank screen on Vercel
 import MapView from './components/MapView.jsx';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -30,8 +30,9 @@ function App() {
   const fetchReports = async () => {
     try {
       setIsLoadingReports(true);
-      const response = await axios.get('/api/reports');
-      setReports(response.data.reports || []);
+      const response = await fetch('/api/reports');
+      const data = await response.json();
+      setReports(data.reports || []);
     } catch (error) {
       console.error('Error fetching reports:', error);
     } finally {
@@ -42,12 +43,13 @@ function App() {
   // Handle upvote function
   const handleUpvote = async (reportId) => {
     try {
-      const response = await axios.post(`/api/reports/${reportId}/upvote`);
+      const response = await fetch(`/api/reports/${reportId}/upvote`, { method: 'POST' });
+      const data = await response.json();
       // Update the specific report's upvote count in state
       setReports(prevReports => 
         prevReports.map(report => 
           report.id === reportId 
-            ? { ...report, upvotes: response.data.upvotes }
+            ? { ...report, upvotes: data.upvotes }
             : report
         )
       );
@@ -74,8 +76,9 @@ function App() {
         setIsLoadingFavorites(true);
         safetyTimer = setTimeout(() => setIsLoadingFavorites(false), 5000);
       }
-      const response = await axios.get('/api/favorites?userId=anonymous');
-      setFavorites(response.data.favorites || []);
+      const response = await fetch('/api/favorites?userId=anonymous');
+      const data = await response.json();
+      setFavorites(data.favorites || []);
     } catch (error) {
       console.error('Error fetching favorites:', error);
       if (error.response?.status !== 429) {
@@ -94,22 +97,30 @@ function App() {
   // Add to favorites function
   const addToFavorites = async (parkingLotId) => {
     try {
-      const response = await axios.post('/api/favorites', {
-        parkingLotId: Number(parkingLotId),
-        userId: 'anonymous'
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          parkingLotId: Number(parkingLotId),
+          userId: 'anonymous'
+        })
       });
-      setFavorites(prev => [response.data.favorite, ...prev]);
+      const data = await response.json();
+      setFavorites(prev => [data.favorite, ...prev]);
     } catch (error) {
       console.error('Error adding to favorites:', error);
-      const serverMessage = error.response?.data?.message;
-      alert(serverMessage ? `Failed to add to favorites: ${serverMessage}` : 'Failed to add to favorites. Please try again.');
+      alert('Failed to add to favorites. Please try again.');
     }
   };
 
   // Remove from favorites function
   const removeFromFavorites = async (parkingLotId) => {
     try {
-      await axios.delete(`/api/favorites/delete?userId=anonymous&parkingLotId=${parkingLotId}`);
+      await fetch(`/api/favorites/delete?userId=anonymous&parkingLotId=${parkingLotId}`, {
+        method: 'DELETE'
+      });
       setFavorites(prev => prev.filter(fav => fav.parkingLotId !== parkingLotId));
     } catch (error) {
       console.error('Error removing from favorites:', error);
@@ -126,11 +137,12 @@ function App() {
     // Function to fetch data via HTTP (for Vercel)
     const fetchDataViaHttp = async () => {
       try {
-        const response = await axios.get('/api/transit-data');
-        if (response.data) {
-          setParkingData(response.data.parkingLots || []);
-          setTransitData(response.data.transitVehicles || []);
-          setDataSource(response.data.dataMode || '🔴 Simulated (Fallback)');
+        const response = await fetch('/api/transit-data');
+        const data = await response.json();
+        if (data) {
+          setParkingData(data.parkingLots || []);
+          setTransitData(data.transitVehicles || []);
+          setDataSource(data.dataMode || '🔴 Simulated (Fallback)');
           setIsConnected(true);
           setIsLoadingData(false);
         }
