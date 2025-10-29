@@ -104,6 +104,11 @@ Set these in Vercel Dashboard → Settings → Environment Variables:
 - Fixed output directory configuration for static build
 - Updated build process to use root package.json with `vercel-build` script
 
+✅ **Build Dependencies Fixed** (October 29, 2025)
+- Moved Vite and build tools from devDependencies to dependencies
+- Fixed "vite: command not found" error in Vercel builds
+- Updated build scripts to use `npm ci` for more reliable builds
+
 ### Performance Checks
 - [ ] Page load speed acceptable
 - [ ] API response times reasonable
