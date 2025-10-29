@@ -1,4 +1,42 @@
 import { db } from '../firebase.js';
+import { faker } from '@faker-js/faker';
+
+// Helper function to generate parking lot data (same as transit-data.js)
+function getParkingLotById(lotId) {
+  const delhiLocations = [
+    { name: 'Connaught Place', coords: [28.6315, 77.2167] },
+    { name: 'India Gate', coords: [28.6129, 77.2295] },
+    { name: 'Red Fort', coords: [28.6562, 77.2410] },
+    { name: 'Chandni Chowk', coords: [28.6506, 77.2303] },
+    { name: 'AIIMS', coords: [28.5672, 77.2100] },
+    { name: 'Hauz Khas', coords: [28.5494, 77.2001] },
+    { name: 'Karol Bagh', coords: [28.6519, 77.1905] },
+    { name: 'Rajouri Garden', coords: [28.6469, 77.1201] },
+    { name: 'Dwarka', coords: [28.5921, 77.0460] },
+    { name: 'Gurgaon Cyber City', coords: [28.4950, 77.0890] },
+    { name: 'Noida City Centre', coords: [28.5744, 77.3564] },
+    { name: 'Faridabad', coords: [28.4089, 77.3178] }
+  ];
+
+  if (lotId < 0 || lotId >= delhiLocations.length) {
+    return null;
+  }
+
+  const location = delhiLocations[lotId];
+  // Use consistent seed for same ID
+  faker.seed(lotId + 1000);
+
+  return {
+    id: lotId,
+    name: `${location.name} Park & Ride`,
+    location: [
+      location.coords[0] + (Math.random() - 0.5) * 0.01,
+      location.coords[1] + (Math.random() - 0.5) * 0.01
+    ],
+    capacity: faker.number.int({ min: 100, max: 500 }),
+    availableSpots: faker.number.int({ min: 10, max: 100 })
+  };
+}
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -27,27 +65,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Parking lot ID is required' });
       }
 
-      // If parkingLot data is not provided, fetch it from transit-data
+      // If parkingLot data is not provided, fetch it
       let parkingLotData = parkingLot || {};
 
       if (!parkingLot || Object.keys(parkingLot).length === 0) {
-        try {
-          // Import transit API to get parking lot details
-          const { generateParkingLots } = await import('../services/transitAPI.js');
-          const allParkingLots = generateParkingLots();
-          const foundLot = allParkingLots.find(lot => lot.id === Number(parkingLotId));
-
-          if (foundLot) {
-            parkingLotData = {
-              id: foundLot.id,
-              name: foundLot.name,
-              location: foundLot.location,
-              capacity: foundLot.capacity,
-              availableSpots: foundLot.availableSpots
-            };
-          }
-        } catch (err) {
-          console.error('Error fetching parking lot details:', err);
+        const foundLot = getParkingLotById(Number(parkingLotId));
+        if (foundLot) {
+          parkingLotData = foundLot;
         }
       }
 
