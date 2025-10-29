@@ -24,10 +24,12 @@ logger.info(`Environment: ${config.nodeEnv}`);
 
 const app = express();
 
+// Security middleware
 app.disable('x-powered-by');
-app.use(helmet()); 
-app.use(compression()); 
+app.use(helmet()); // Add security headers
+app.use(compression()); // Enable gzip compression
 
+// Apply CORS with configuration
 app.use(cors({
   origin: config.cors.origin,
   methods: config.cors.methods,
@@ -35,26 +37,30 @@ app.use(cors({
   credentials: config.cors.credentials
 }));
 
+// Ensure local uploads directory exists and serve it
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsDir));
 
-app.use(express.json({ limit: '10kb' })); 
+// Body parsing
+app.use(express.json({ limit: '10kb' })); // Limit JSON body size
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'your_cloud_name',
   api_key: process.env.CLOUDINARY_API_KEY || 'your_api_key',
   api_secret: process.env.CLOUDINARY_API_SECRET || 'your_api_secret'
 });
 
+// Configure multer for image uploads
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -65,6 +71,7 @@ const upload = multer({
   }
 });
 
+// Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
@@ -72,6 +79,7 @@ app.use((req, res, next) => {
 
 const server = createServer(app);
 
+// Configure Socket.IO with CORS
 const io = new Server(server, {
   cors: {
     origin: config.cors.origin,
@@ -79,9 +87,9 @@ const io = new Server(server, {
     allowedHeaders: config.cors.allowedHeaders,
     credentials: config.cors.credentials
   },
-  pingTimeout: 60000, 
-  pingInterval: 25000, 
-  maxHttpBufferSize: 1e8 
+  pingTimeout: 60000, // Increase ping timeout
+  pingInterval: 25000, // Send pings every 25 seconds
+  maxHttpBufferSize: 1e8 // 100MB max message size (for large data transfers)
 });
 
 let parkingLots = [];
@@ -94,14 +102,14 @@ async function fetchDelhiTransitData(silent = false) {
   if (realData && realData.length > 0) {
     return realData;
   }
-  
+  // Use simulated data as fallback
   if (!silent) console.log('📊 Using simulated data as fallback');
   return generateFallbackTransitData();
 }
 
 async function fetchAllRealTransitData(silent = false) {
   try {
-    
+    // Try to fetch real data
     const realData = await transitAPI.getAllTransitData();
     if (realData && realData.length > 0) {
       if (!silent) console.log(`✅ Fetched ${realData.length} real transit vehicles`);
@@ -169,6 +177,7 @@ function generateFallbackTransitData() {
 
   const fallbackData = [];
 
+  // Generate Metro vehicles
   for (let i = 0; i < 10; i++) {
     const metro = metroLines[i];
     const location = delhiLocations[i];
@@ -199,6 +208,7 @@ function generateFallbackTransitData() {
     });
   }
 
+  // Generate Bus vehicles
   for (let i = 0; i < 5; i++) {
     const bus = busRoutes[i];
     const location = delhiLocations[i + 10];
@@ -229,6 +239,7 @@ function generateFallbackTransitData() {
     });
   }
 
+  // Generate Train vehicles
   for (let i = 0; i < 4; i++) {
     const train = trainRoutes[i];
     const location = delhiLocations[i + 15];
@@ -280,6 +291,7 @@ async function generateData() {
     { name: 'Faridabad', coords: [28.4089, 77.3178] }
   ];
 
+  // Generate parking lots
   parkingLots = [];
   for (let i = 0; i < 12; i++) {
     const location = delhiLocations[i];
@@ -295,6 +307,7 @@ async function generateData() {
     });
   }
 
+  // Fetch transit data
   transitVehicles = await fetchDelhiTransitData();
 }
 
@@ -361,7 +374,7 @@ app.post('/api/upload-image', (req, res) => {
         const filename = `report_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
         const dest = path.join(uploadsDir, filename);
         fs.writeFileSync(dest, req.file.buffer);
-        const url = `${req.protocol}:
+        const url = `${req.protocol}://${req.get('host')}/uploads/${filename}`;
         return res.json({ success: true, imageUrl: url, publicId: filename, storage: 'local' });
       } catch (e) {
         console.error('❌ Local image save failed:', e.message || e);

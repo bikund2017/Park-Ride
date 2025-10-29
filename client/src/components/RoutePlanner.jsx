@@ -8,7 +8,7 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
-  const [mode, setMode] = useState('auto'); 
+  const [mode, setMode] = useState('auto'); // auto | metro | bus | train | walk
   const [recent, setRecent] = useState(() => {
     try {
       const raw = localStorage.getItem('route_recent');
@@ -48,6 +48,7 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
     setDestination(origin);
   };
 
+  // Basic helpers to derive coordinates and distance for rough validation/UX
   const cityLatLng = {
     'delhi': { lat: 28.6139, lng: 77.2090 },
     'new delhi': { lat: 28.6139, lng: 77.2090 },
@@ -94,11 +95,11 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
 
     setIsCalculating(true);
     try {
-      
+      // Try to resolve coordinates via free OSM Nominatim if not coordinates/known city
       const geocode = async (query) => {
         const existing = parseLatLng(query);
         if (existing) return existing;
-        const url = `https:
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
         const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
         if (!res.ok) return null;
         const data = await res.json();
@@ -122,8 +123,9 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
       const osrmProfileMap = { auto: 'driving', walk: 'walking', metro: 'driving', bus: 'driving', train: 'driving' };
       const osrmProfile = osrmProfileMap[mode] || 'driving';
 
+      // If distance is large (> 50km) or mode is walk/auto with resolvable points, try OSRM direct route
       if (a && b && (intercityKm == null ? false : intercityKm > 50 || mode === 'walk' || mode === 'auto')) {
-        const osrmUrl = `https:
+        const osrmUrl = `https://router.project-osrm.org/route/v1/${osrmProfile}/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false&geometries=geojson`;
         const osrmRes = await fetch(osrmUrl, { headers: { 'Accept': 'application/json' } });
         if (osrmRes.ok) {
           const osrmJson = await osrmRes.json();
@@ -131,7 +133,7 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
           if (route0) {
             const totalMinutes = Math.round(route0.duration / 60);
             const distanceKm = Math.round(route0.distance / 1000);
-            const drivingCost = osrmProfile === 'driving' ? Math.round(distanceKm * 12) : 0; 
+            const drivingCost = osrmProfile === 'driving' ? Math.round(distanceKm * 12) : 0; // rough estimate ₹12/km
             setRoutes([{
               id: 'direct-osrm',
               parkingLot: { name: 'Direct Route', address: `${origin} → ${destination}`, availableSpots: '-', hourlyRate: 0 },
@@ -147,22 +149,26 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
             return;
           }
         }
-        
+        // If OSRM fails, fall through to local heuristic below
       }
 
+      // Simulate route calculation with available parking and transit data
       const availableParking = parkingData.filter(lot => lot.availableSpots > 0);
+      // const metroStations = transitData.filter(v => v.vehicleType === 'metro');
+      // const busStations = transitData.filter(v => v.vehicleType === 'bus');
 
+      // Simple route calculation logic
       const candidateLots = availableParking.slice(0, 5);
       const calculatedRoutes = candidateLots.slice(0, 3).map((parkingLot, index) => {
-        const walkingTime = Math.floor(Math.random() * 10) + 5; 
-        const baseTransit = Math.floor(Math.random() * 30) + 15; 
+        const walkingTime = Math.floor(Math.random() * 10) + 5; // 5-15 minutes
+        const baseTransit = Math.floor(Math.random() * 30) + 15; // 15-45 minutes
         const transitTime = mode === 'metro' ? Math.max(10, baseTransit - 5)
                            : mode === 'bus' ? baseTransit + 5
                            : mode === 'train' ? baseTransit
                            : mode === 'walk' ? walkingTime + 10
                            : baseTransit;
         const totalTime = walkingTime + transitTime;
-        const cost = (Number(parkingLot.hourlyRate) || 0) * 2; 
+        const cost = (Number(parkingLot.hourlyRate) || 0) * 2; // Safe fallback
 
         return {
           id: `route-${index}`,
@@ -172,11 +178,12 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
           totalTime,
           cost,
           transitType: mode === 'auto' ? (index % 2 === 0 ? 'metro' : 'bus') : mode,
-          rating: Math.floor(Math.random() * 2) + 4, 
+          rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
           description: `Park at ${parkingLot.name}, then take ${mode === 'auto' ? (index % 2 === 0 ? 'metro' : 'bus') : mode} to destination`
         };
       });
 
+      // Sort by total time
       calculatedRoutes.sort((a, b) => a.totalTime - b.totalTime);
       setRoutes(calculatedRoutes);
       saveRecent(origin, destination);

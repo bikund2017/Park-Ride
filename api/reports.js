@@ -1,11 +1,11 @@
 import { db } from '../firebase.js';
 
 export default async function handler(req, res) {
-  
+  // Enable CORS
   const origin = req.headers.origin;
   const allowedOrigins = process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',') 
-    : ['http:
+    : ['http://localhost:3000'];
   
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);

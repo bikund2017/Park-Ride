@@ -24,11 +24,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Signup function
   const signup = async (email, password, displayName) => {
     try {
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
 
+      // Update display name
       if (displayName) {
         await updateProfile(result.user, { displayName });
       }
@@ -40,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Login function
   const login = async (email, password) => {
     try {
       setError(null);
@@ -50,6 +53,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Google Sign In
   const signInWithGoogle = async () => {
     try {
       setError(null);
@@ -60,6 +64,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout function
   const logout = async () => {
     try {
       setError(null);
@@ -70,6 +75,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);

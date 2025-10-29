@@ -116,6 +116,7 @@ code {
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
 }
 
+/* Leaflet Map Styles */
 .leaflet-container {
   height: 100%;
   width: 100%;
@@ -144,6 +145,7 @@ code {
   margin: 1rem;
 }
 
+/* Report Form Styles */
 .report-form {
   padding: 2rem;
 }
@@ -247,6 +249,7 @@ code {
   }
 }
 
+/* Responsive Design */
 @media (max-width: 1024px) {
   .main-container {
     flex-direction: column;
@@ -294,6 +297,7 @@ code {
   }
 }
 
+/* Print Styles */
 @media print {
   .main-container {
     flex-direction: column;

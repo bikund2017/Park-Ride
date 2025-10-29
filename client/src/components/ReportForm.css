@@ -150,6 +150,7 @@
   cursor: not-allowed;
 }
 
+/* Image upload styles */
 .image-input {
   padding: 0.5rem;
   border: 2px dashed #d1d5db;

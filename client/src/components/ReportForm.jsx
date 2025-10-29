@@ -74,7 +74,8 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
 
     try {
       let imageUrl = null;
-
+      
+      // Upload image if selected
       if (selectedImage) {
         setIsUploadingImage(true);
         imageUrl = await uploadImage(selectedImage);
@@ -104,7 +105,8 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
             onClearLocation();
           }, 500);
         }
-
+        
+        // Clear success message after 3 seconds
         setTimeout(() => {
           setSuccessMessage('');
         }, 3000);

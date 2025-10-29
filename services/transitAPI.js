@@ -1,39 +1,49 @@
 import axios from 'axios';
 import config from '../config.js';
 
+/**
+ * Real API Integration Service for Delhi Transit Data
+ * Integrates with multiple real-time data sources
+ */
+
+// API Configuration
 const APIS = {
-  
+  // Delhi Open Transit Data
   delhiTransit: {
-    baseUrl: 'https:
+    baseUrl: 'https://otd.delhi.gov.in/api/realtime',
     apiKey: config.delhiTransit.apiKey
   },
-  
+  // Delhi Metro Rail Corporation (DMRC)
   dmrc: {
-    baseUrl: 'https:
+    baseUrl: 'https://api.delhimetrorail.com/v1',
     apiKey: process.env.DMRC_API_KEY || ''
   },
-  
+  // Delhi Transport Corporation (DTC)
   dtc: {
-    baseUrl: 'https:
+    baseUrl: 'https://otis.dimts.in/api/v1',
     apiKey: process.env.DTC_API_KEY || ''
   },
-  
+  // Indian Railways NTES
   indianRailways: {
-    baseUrl: 'https:
+    baseUrl: 'https://enquiry.indianrail.gov.in/ntes/api',
     apiKey: process.env.IRCTC_API_KEY || ''
   },
-  
+  // Alternative: RapidAPI for Indian Railways
   rapidAPI: {
-    baseUrl: 'https:
+    baseUrl: 'https://indian-railway-api.p.rapidapi.com',
     apiKey: process.env.RAPIDAPI_KEY || '',
     host: 'indian-railway-api.p.rapidapi.com'
   }
 };
 
+/**
+ * Fetch real-time Delhi Metro data
+ */
 export async function fetchDelhiMetroData() {
   try {
     console.log('🚇 Fetching real Delhi Metro data...');
 
+    // Try Delhi Open Transit Data API
     const response = await axios.get(`${APIS.delhiTransit.baseUrl}/metro-positions`, {
       headers: {
         'X-API-Key': APIS.delhiTransit.apiKey,
@@ -72,6 +82,9 @@ export async function fetchDelhiMetroData() {
   }
 }
 
+/**
+ * Fetch real-time DTC Bus data
+ */
 export async function fetchDTCBusData() {
   try {
     console.log('🚌 Fetching real DTC Bus data...');
@@ -114,11 +127,15 @@ export async function fetchDTCBusData() {
   }
 }
 
+/**
+ * Fetch real-time Indian Railways data
+ */
 export async function fetchIndianRailwaysData() {
   try {
     console.log('🚂 Fetching real Indian Railways data...');
 
-    const stations = ['NDLS', 'DLI', 'NZM', 'ANVT']; 
+    // Major Delhi railway stations
+    const stations = ['NDLS', 'DLI', 'NZM', 'ANVT']; // New Delhi, Old Delhi, Nizamuddin, Anand Vihar
     const trainData = [];
 
     for (const stationCode of stations) {
@@ -167,6 +184,9 @@ export async function fetchIndianRailwaysData() {
   }
 }
 
+/**
+ * Fetch all real transit data
+ */
 export async function fetchAllRealTransitData() {
   console.log('📡 Fetching all real transit data from APIs...');
 
@@ -190,6 +210,9 @@ export async function fetchAllRealTransitData() {
   return null;
 }
 
+/**
+ * Helper: Generate route path from vehicle location
+ */
 function generateRoutePath(vehicle) {
   const lat = parseFloat(vehicle.latitude || vehicle.lat || 28.6139);
   const lng = parseFloat(vehicle.longitude || vehicle.lng || 77.2090);
@@ -203,17 +226,23 @@ function generateRoutePath(vehicle) {
   return path;
 }
 
+/**
+ * Helper: Get station coordinates
+ */
 function getStationCoordinates(stationCode) {
   const stations = {
-    'NDLS': [28.6431, 77.2197], 
-    'DLI': [28.6642, 77.2295],  
-    'NZM': [28.5875, 77.2506],  
-    'ANVT': [28.6469, 77.3160]  
+    'NDLS': [28.6431, 77.2197], // New Delhi
+    'DLI': [28.6642, 77.2295],  // Old Delhi
+    'NZM': [28.5875, 77.2506],  // Nizamuddin
+    'ANVT': [28.6469, 77.3160]  // Anand Vihar
   };
 
   return stations[stationCode] || [28.6139, 77.2090];
 }
 
+/**
+ * Helper: Generate train route path
+ */
 function generateTrainRoutePath(stationCode) {
   const coords = getStationCoordinates(stationCode);
   const path = [];

@@ -1,4 +1,4 @@
-
+/* Leaflet Marker Cluster Styles */
 .marker-cluster-small {
   background-color: rgba(16, 185, 129, 0.6);
 }
@@ -16,11 +16,13 @@
   font-weight: bold;
 }
 
+/* Fix for map display issue */
 .map-wrapper {
   position: relative;
   overflow: hidden;
 }
 
+/* Ensure leaflet container has proper height and displays tiles */
 .leaflet-container {
   height: 100%;
   width: 100%;
@@ -36,12 +38,14 @@
   top: 0;
 }
 
+/* Leaflet attribution */
 .leaflet-control-attribution {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 8px;
   padding: 2px 8px;
 }
 
+/* Ensure map tiles load */
 .leaflet-container img {
   max-width: none !important;
 }

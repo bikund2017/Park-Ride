@@ -2,12 +2,13 @@ import { db, admin } from '../firebase.js';
 import validator from 'validator';
 
 export default async function handler(req, res) {
-  
+  // Enable CORS
   const origin = req.headers.origin;
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['http:
+    : ['http://localhost:3000', 'http://localhost:5173'];
 
+  // Allow all Vercel deployments
   if (origin && (allowedOrigins.includes(origin) || origin.includes('vercel.app'))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
@@ -24,6 +25,7 @@ export default async function handler(req, res) {
     try {
       const { location, description, category, imageUrl } = req.body;
 
+      // Log the received data for debugging
       console.log('📥 Received report data:', { location, description, category, imageUrl });
 
       if (!location || !Array.isArray(location) || location.length !== 2) {

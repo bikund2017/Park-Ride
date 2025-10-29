@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 
+// Mock data generation for Vercel (since we can't run real-time updates)
 function generateTransitData() {
   const metroLines = [
     { name: 'Red Line (Rithala - Shaheed Sthal)', color: '#E41E26', stations: 29 },
@@ -53,6 +54,7 @@ function generateTransitData() {
 
   const transitVehicles = [];
 
+  // Generate Metro vehicles
   for (let i = 0; i < 10; i++) {
     const metro = metroLines[i];
     const location = delhiLocations[i];
@@ -83,6 +85,7 @@ function generateTransitData() {
     });
   }
 
+  // Generate Bus vehicles
   for (let i = 0; i < 5; i++) {
     const bus = busRoutes[i];
     const location = delhiLocations[i + 10];
@@ -113,6 +116,7 @@ function generateTransitData() {
     });
   }
 
+  // Generate Train vehicles
   for (let i = 0; i < 4; i++) {
     const train = trainRoutes[i];
     const location = delhiLocations[i + 15];
@@ -180,7 +184,7 @@ function generateParkingData() {
 }
 
 export default async function handler(req, res) {
-  
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
