@@ -1,29 +1,26 @@
 import admin from 'firebase-admin';
-import { readFileSync } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Initialize Firebase
 let db;
 
 try {
-  // Try to use service account file first
-  try {
-    const serviceAccountPath = path.resolve(__dirname, 'serviceAccountKey.json');
-    const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
-    });
-
-    console.log('✓ Firebase initialized with service account');
-  } catch (fileError) {
-    console.log('No service account file found, using default app');
-    admin.initializeApp();
+  // Check if already initialized
+  if (admin.apps.length === 0) {
+    // Use environment variables (required for Vercel)
+    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        }),
+        databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`
+      });
+      console.log('✓ Firebase initialized with environment variables');
+    } else {
+      console.log('⚠ Firebase environment variables not found');
+      throw new Error('Missing Firebase credentials');
+    }
   }
 
   db = admin.firestore();
