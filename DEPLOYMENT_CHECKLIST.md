@@ -50,6 +50,15 @@ Set these in Vercel Dashboard → Settings → Environment Variables:
 **Important:**
 - [ ] `ALLOWED_ORIGINS=https://your-app.vercel.app`
 
+> **How to set ALLOWED_ORIGINS:**
+> 1. Deploy your app first to get the Vercel URL
+> 2. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+> 3. Add: `ALLOWED_ORIGINS` = `https://your-actual-vercel-url.vercel.app`
+> 4. Click "Save" and redeploy if needed
+> 
+> **Example:** If your app deploys to `https://park-ride-delhi.vercel.app`, 
+> then set `ALLOWED_ORIGINS=https://park-ride-delhi.vercel.app`
+
 **Optional:**
 - [ ] `CLOUDINARY_CLOUD_NAME=your-cloud-name`
 - [ ] `CLOUDINARY_API_KEY=your-api-key`
