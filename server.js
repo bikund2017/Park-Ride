@@ -4,7 +4,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { faker } from '@faker-js/faker';
 import cors from 'cors';
-import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
@@ -139,19 +138,6 @@ async function fetchDelhiTransitData(silent = false) {
 
   if (!silent) console.log('📊 Using simulated data as fallback');
   return generateFallbackTransitData();
-}
-
-function generateRoutePathForVehicle(vehicle) {
-  const lat = parseFloat(vehicle.latitude) || 28.6139;
-  const lng = parseFloat(vehicle.longitude) || 77.2090;
-  const routePath = [];
-  
-  for (let i = 0; i < 10; i++) {
-    const offset = (i - 5) * 0.01;
-    routePath.push([lat + offset, lng + offset * 0.5]);
-  }
-  
-  return routePath;
 }
 
 function generateFallbackTransitData() {
@@ -511,7 +497,7 @@ app.post('/api/report', async (req, res) => {
 
 app.get('/api/reports', async (req, res) => {
   try {
-    const { category, search, limit = 100, skip = 0 } = req.query;
+    const { category, search, limit = 100 } = req.query;
     
     let query = db.collection('reports');
     
@@ -782,7 +768,7 @@ async function initializeApplication() {
   }
 }
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     status: 'error',

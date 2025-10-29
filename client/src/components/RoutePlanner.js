@@ -1,6 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import './RoutePlanner.css';
+
+const cityLatLng = {
+  'delhi': { lat: 28.6139, lng: 77.2090 },
+  'new delhi': { lat: 28.6139, lng: 77.2090 },
+  'patna': { lat: 25.5941, lng: 85.1376 },
+  'bihar': { lat: 25.5941, lng: 85.1376 },
+  'gurugram': { lat: 28.4595, lng: 77.0266 },
+  'noida': { lat: 28.5355, lng: 77.3910 },
+  'ghaziabad': { lat: 28.6692, lng: 77.4538 }
+};
 
 const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
   const [origin, setOrigin] = useState('');
@@ -48,18 +58,7 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
     setDestination(origin);
   };
 
-  // Basic helpers to derive coordinates and distance for rough validation/UX
-  const cityLatLng = {
-    'delhi': { lat: 28.6139, lng: 77.2090 },
-    'new delhi': { lat: 28.6139, lng: 77.2090 },
-    'patna': { lat: 25.5941, lng: 85.1376 },
-    'bihar': { lat: 25.5941, lng: 85.1376 },
-    'gurugram': { lat: 28.4595, lng: 77.0266 },
-    'noida': { lat: 28.5355, lng: 77.3910 },
-    'ghaziabad': { lat: 28.6692, lng: 77.4538 }
-  };
-
-  const parseLatLng = (text) => {
+  const parseLatLng = useCallback((text) => {
     if (!text) return null;
     const t = text.trim();
     const coordMatch = t.match(/^\s*(-?\d{1,2}\.\d+),\s*(-?\d{1,3}\.\d+)\s*$/);
@@ -69,9 +68,9 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
     const key = t.toLowerCase();
     if (cityLatLng[key]) return cityLatLng[key];
     return null;
-  };
+  }, []);
 
-  const haversineKm = (a, b) => {
+  const haversineKm = useCallback((a, b) => {
     if (!a || !b) return null;
     const toRad = (d) => (d * Math.PI) / 180;
     const R = 6371;
@@ -81,11 +80,11 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {
     const lat2 = toRad(b.lat);
     const h = Math.sin(dLat/2)**2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng/2)**2;
     return 2 * R * Math.asin(Math.sqrt(h));
-  };
+  }, []);
 
-  const originPoint = useMemo(() => parseLatLng(origin), [origin]);
-  const destinationPoint = useMemo(() => parseLatLng(destination), [destination]);
-  const approxDistanceKm = useMemo(() => haversineKm(originPoint, destinationPoint), [originPoint, destinationPoint]);
+  const originPoint = useMemo(() => parseLatLng(origin), [origin, parseLatLng]);
+  const destinationPoint = useMemo(() => parseLatLng(destination), [destination, parseLatLng]);
+  const approxDistanceKm = useMemo(() => haversineKm(originPoint, destinationPoint), [originPoint, destinationPoint, haversineKm]);
 
   const calculateRoutes = async () => {
     if (!origin.trim() || !destination.trim()) {

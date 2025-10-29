@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { category, search, limit = 100, skip = 0 } = req.query;
+      const { category, search, limit = 100 } = req.query;
       
       let query = db.collection('reports');
       
