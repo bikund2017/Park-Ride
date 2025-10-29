@@ -1,59 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import axios from 'axios';
 
 function HomePage() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [count, setCount] = useState(0);
+  const [message, setMessage] = useState('Initial message');
 
   useEffect(() => {
-    console.log('✅ Fetching transit data...');
+    console.log('✅ useEffect running in HomePage');
+    setMessage('useEffect executed successfully!');
     
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('/api/transit-data');
-        console.log('✅ Data received:', response.data);
-        setData(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('❌ Error fetching data:', err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    const timer = setTimeout(() => {
+      setCount(c => c + 1);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  if (loading) {
-    return <div style={{ padding: '20px' }}>Loading data...</div>;
-  }
-
-  if (error) {
-    return <div style={{ padding: '20px', color: '#ff6b6b' }}>Error: {error}</div>;
-  }
+  console.log('HomePage render - count:', count, 'message:', message);
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Home Page with Data</h2>
-      <p>✅ API is working! Data loaded successfully.</p>
-      
-      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '15px', borderRadius: '8px', marginTop: '20px' }}>
-        <h3>Transit Data Summary:</h3>
-        <p>Parking Lots: {data?.parkingLots?.length || 0}</p>
-        <p>Transit Vehicles: {data?.transitVehicles?.length || 0}</p>
-        <p>Data Mode: {data?.dataMode || 'unknown'}</p>
-      </div>
-
-      <details style={{ marginTop: '20px' }}>
-        <summary style={{ cursor: 'pointer', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }}>
-          View First Parking Lot
-        </summary>
-        <pre style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '4px', overflow: 'auto', fontSize: '12px' }}>
-          {JSON.stringify(data?.parkingLots?.[0], null, 2)}
-        </pre>
-      </details>
+      <h2>✅ Home Page</h2>
+      <p>Message: {message}</p>
+      <p>Count: {count}</p>
+      <button 
+        onClick={() => setCount(c => c + 1)}
+        style={{
+          padding: '10px 20px',
+          background: 'white',
+          color: '#667eea',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          marginTop: '10px'
+        }}
+      >
+        Increment ({count})
+      </button>
     </div>
   );
 }
