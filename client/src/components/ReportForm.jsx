@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import './ReportForm.css';
 
@@ -45,15 +44,14 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
     formData.append('image', imageFile);
     
     try {
-      const response = await axios.post('/api/upload-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData
       });
-      return response.data.imageUrl;
+      const data = await response.json();
+      return data.imageUrl;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Image upload failed';
-      alert(msg + '. Submitting report without image.');
+      alert('Image upload failed. Submitting report without image.');
       return null;
     }
   };
@@ -91,9 +89,15 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
         imageUrl: imageUrl
       };
 
-      const response = await axios.post('/api/report', reportData);
+      const response = await fetch('/api/report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reportData)
+      });
       
-      if (response.status === 201) {
+      if (response.ok) {
         setSuccessMessage('Report submitted successfully!');
         setDescription('');
         if (onClearLocation) {
@@ -106,6 +110,8 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
         setTimeout(() => {
           setSuccessMessage('');
         }, 3000);
+      } else {
+        throw new Error('Failed to submit report');
       }
     } catch (error) {
       console.error('Error submitting report:', error);
