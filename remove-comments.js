@@ -1,19 +1,11 @@
 #!/usr/bin/env node
 
-/**
- * Remove Comments Script
- * Removes comments from JavaScript, JSX, and CSS files
- * Creates backups before modifying files
- */
+import fs from 'fs';
+import path from 'path';
 
-const fs = require('fs');
-const path = require('path');
-
-// Directories to skip
 const SKIP_DIRS = ['node_modules', 'dist', 'build', '.git', '.next', 'coverage'];
 const SKIP_FILES = ['remove-comments.js', 'remove-comments.sh'];
 
-// Colors for console output
 const colors = {
   reset: '\x1b[0m',
   green: '\x1b[32m',
@@ -22,16 +14,13 @@ const colors = {
   cyan: '\x1b[36m'
 };
 
-let stats = {
+const stats = {
   jsFiles: 0,
   cssFiles: 0,
   totalFiles: 0,
   errors: 0
 };
 
-/**
- * Remove single-line and multi-line comments from JavaScript/JSX
- */
 function removeJSComments(content) {
   // Remove single-line comments (// ...)
   content = content.replace(/\/\/.*$/gm, '');
