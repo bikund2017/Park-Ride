@@ -118,47 +118,88 @@ function App() {
   };
 
   useEffect(() => {
-    const socket = io('http://localhost:3002');
+    // Detect if running on Vercel or locally
+    const isVercel = window.location.hostname.includes('vercel.app');
+    let socket = null;
+    let pollingInterval = null;
 
-    socket.on('connect', () => {
-      console.log('Connected to server');
-      setIsConnected(true);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
-      setIsConnected(false);
-    });
-
-    socket.on('update-data', (data) => {
-      setParkingData(data.parkingLots);
-      setTransitData(data.transitVehicles);
-      setIsLoadingData(false);
-    });
-
-    // Fetch transit API info to determine data source
-    const fetchTransitInfo = async () => {
+    // Function to fetch data via HTTP (for Vercel)
+    const fetchDataViaHttp = async () => {
       try {
-        const response = await fetch('/api/transit-info');
-        const info = await response.json();
-        console.log('Transit API Info:', info);
-        setDataSource(info.dataMode || 'Checking...');
+        const response = await axios.get('/api/transit-data');
+        if (response.data) {
+          setParkingData(response.data.parkingLots || []);
+          setTransitData(response.data.transitVehicles || []);
+          setDataSource(response.data.dataMode || '🔴 Simulated (Fallback)');
+          setIsConnected(true);
+          setIsLoadingData(false);
+        }
       } catch (error) {
-        console.error('Error fetching transit info:', error);
-        setDataSource('Unknown');
+        console.error('Error fetching transit data:', error);
+        setIsConnected(false);
+        setDataSource('Error');
       }
     };
 
-    fetchTransitInfo();
-    // Check data source every 10 seconds
-    const interval = setInterval(fetchTransitInfo, 10000);
+    if (isVercel) {
+      // Use HTTP polling for Vercel deployment
+      console.log('Running on Vercel - using HTTP polling');
+      setIsConnected(true);
+      
+      // Initial fetch
+      fetchDataViaHttp();
+      
+      // Poll every 10 seconds
+      pollingInterval = setInterval(fetchDataViaHttp, 10000);
+    } else {
+      // Use Socket.IO for local development
+      console.log('Running locally - using Socket.IO');
+      socket = io('http://localhost:3002');
+
+      socket.on('connect', () => {
+        console.log('Connected to server');
+        setIsConnected(true);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+        setIsConnected(false);
+      });
+
+      socket.on('update-data', (data) => {
+        setParkingData(data.parkingLots);
+        setTransitData(data.transitVehicles);
+        setIsLoadingData(false);
+      });
+
+      // Fetch transit API info to determine data source
+      const fetchTransitInfo = async () => {
+        try {
+          const response = await fetch('/api/transit-info');
+          const info = await response.json();
+          console.log('Transit API Info:', info);
+          setDataSource(info.dataMode || 'Checking...');
+        } catch (error) {
+          console.error('Error fetching transit info:', error);
+          setDataSource('Unknown');
+        }
+      };
+
+      fetchTransitInfo();
+      // Check data source every 10 seconds
+      pollingInterval = setInterval(fetchTransitInfo, 10000);
+    }
 
     // Fetch reports on component mount
     fetchReports();
 
     return () => {
-      socket.disconnect();
-      clearInterval(interval);
+      if (socket) {
+        socket.disconnect();
+      }
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
     };
   }, []);
 
