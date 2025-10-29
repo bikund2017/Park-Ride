@@ -12,11 +12,9 @@ import validator from 'validator';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import config from './config.js';
-import authRoutes from './routes/auth.js';
 import { db, admin } from './firebase.js';
 import transitAPI from './services/transitAPI.js';
 import logger from './utils/logger.js';
-import morganMiddleware from './utils/morganConfig.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,9 +23,6 @@ logger.info('🚀 Starting Park & Ride+ Delhi NCR Server...');
 logger.info(`Environment: ${config.nodeEnv}`);
 
 const app = express();
-
-// Request logging middleware
-app.use(morganMiddleware);
 
 // Security middleware
 app.disable('x-powered-by');
@@ -48,14 +43,6 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsDir));
-
-// Routes
-app.use('/api/auth', authRoutes);
-
-// Protected route example
-app.get('/api/auth/me', (req, res) => {
-  res.json({ user: req.user });
-});
 
 // Body parsing
 app.use(express.json({ limit: '10kb' })); // Limit JSON body size
@@ -606,8 +593,7 @@ app.get('/api/transit-info', (req, res) => {
       delhiOTD: config.delhiTransit.apiKey ? '✓ Configured' : '✗ Missing',
       dmrc: process.env.DMRC_API_KEY ? '✓ Configured' : '⏳ Pending',
       dtc: process.env.DTC_API_KEY ? '✓ Configured' : '⏳ Pending',
-      indianRailways: process.env.IRCTC_API_KEY || process.env.RAPIDAPI_KEY ? '✓ Configured' : '⏳ Pending',
-      parking: process.env.PARKING_API_KEY ? '✓ Configured' : '⏳ Pending'
+      indianRailways: process.env.IRCTC_API_KEY || process.env.RAPIDAPI_KEY ? '✓ Configured' : '⏳ Pending'
     },
     vehicleCounts: {
       total: transitVehicles.length,

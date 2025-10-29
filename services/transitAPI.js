@@ -185,43 +185,6 @@ export async function fetchIndianRailwaysData() {
 }
 
 /**
- * Fetch real-time parking data from IoT sensors or APIs
- */
-export async function fetchParkingData() {
-  try {
-    console.log('🅿️ Fetching real parking data...');
-
-    // Try to fetch from smart parking API
-    const response = await axios.get(`${APIS.delhiTransit.baseUrl}/parking-availability`, {
-      headers: {
-        'X-API-Key': APIS.delhiTransit.apiKey,
-        'Accept': 'application/json'
-      },
-      timeout: 5000
-    });
-
-    if (response.data && response.data.parking_lots) {
-      const parkingData = response.data.parking_lots.map(lot => ({
-        id: lot.id,
-        name: lot.name,
-        location: [parseFloat(lot.latitude), parseFloat(lot.longitude)],
-        capacity: parseInt(lot.total_capacity),
-        availableSpots: parseInt(lot.available_spots),
-        lastUpdated: lot.last_updated
-      }));
-
-      console.log(`✅ Fetched ${parkingData.length} real parking lots`);
-      return parkingData;
-    }
-
-    throw new Error('No parking data available');
-  } catch (error) {
-    console.log(`⚠️ Parking API error: ${error.message}`);
-    return null;
-  }
-}
-
-/**
  * Fetch all real transit data
  */
 export async function fetchAllRealTransitData() {
@@ -296,6 +259,5 @@ export default {
   fetchDelhiMetroData,
   fetchDTCBusData,
   fetchIndianRailwaysData,
-  fetchParkingData,
-  fetchAllRealTransitData
+  getAllTransitData: fetchAllRealTransitData
 };
