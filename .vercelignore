@@ -24,3 +24,11 @@ coverage
 *.swp
 *.swo
 *~
+
+# Ignore local development server (not needed for Vercel serverless)
+server.js
+nodemon.json
+
+# Ignore services and utils used only by server.js
+services/
+utils/
