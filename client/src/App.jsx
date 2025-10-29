@@ -129,12 +129,7 @@ function App() {
   };
 
   useEffect(() => {
-    // Detect if running on Vercel or locally
-    const isVercel = window.location.hostname.includes('vercel.app');
-    let socket = null;
-    let pollingInterval = null;
-
-    // Function to fetch data via HTTP (for Vercel)
+    // Function to fetch data via HTTP
     const fetchDataViaHttp = async () => {
       try {
         const response = await fetch('/api/transit-data');
@@ -153,69 +148,20 @@ function App() {
       }
     };
 
-    if (isVercel) {
-      // Use HTTP polling for Vercel deployment
-      console.log('Running on Vercel - using HTTP polling');
-      setIsConnected(true);
-      
-      // Initial fetch
-      fetchDataViaHttp();
-      
-      // Poll every 10 seconds
-      pollingInterval = setInterval(fetchDataViaHttp, 10000);
-    } else {
-      // Use Socket.IO for local development - import dynamically
-      console.log('Running locally - using Socket.IO');
-      
-      import('socket.io-client').then((socketIO) => {
-        const io = socketIO.default || socketIO;
-        socket = io('http://localhost:3002');
-
-        socket.on('connect', () => {
-          console.log('Connected to server');
-          setIsConnected(true);
-        });
-
-        socket.on('disconnect', () => {
-          console.log('Disconnected from server');
-          setIsConnected(false);
-        });
-
-        socket.on('update-data', (data) => {
-          setParkingData(data.parkingLots);
-          setTransitData(data.transitVehicles);
-          setIsLoadingData(false);
-        });
-
-        // Fetch transit API info to determine data source
-        const fetchTransitInfo = async () => {
-          try {
-            const response = await fetch('/api/transit-info');
-            const info = await response.json();
-            console.log('Transit API Info:', info);
-            setDataSource(info.dataMode || 'Checking...');
-          } catch (error) {
-            console.error('Error fetching transit info:', error);
-            setDataSource('Unknown');
-          }
-        };
-
-        fetchTransitInfo();
-        // Check data source every 10 seconds
-        pollingInterval = setInterval(fetchTransitInfo, 10000);
-      }).catch((error) => {
-        console.error('Failed to load Socket.IO:', error);
-        setIsConnected(false);
-      });
-    }
+    // Always use HTTP polling (works on both Vercel and localhost)
+    console.log('Using HTTP polling for data updates');
+    setIsConnected(true);
+    
+    // Initial fetch
+    fetchDataViaHttp();
+    
+    // Poll every 10 seconds
+    const pollingInterval = setInterval(fetchDataViaHttp, 10000);
 
     // Fetch reports on component mount
     fetchReports();
 
     return () => {
-      if (socket) {
-        socket.disconnect();
-      }
       if (pollingInterval) {
         clearInterval(pollingInterval);
       }

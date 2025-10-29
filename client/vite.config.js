@@ -25,7 +25,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false, // Disable for production
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -35,8 +35,5 @@ export default defineConfig({
         }
       }
     }
-  },
-  define: {
-    global: 'globalThis',
-  },
+  }
 })
