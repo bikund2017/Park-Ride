@@ -3,10 +3,10 @@ import { db } from '../firebase.js';
 export default async function handler(req, res) {
   // Enable CORS
   const origin = req.headers.origin;
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',') 
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
     : ['http://localhost:3000'];
-  
+
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
@@ -27,11 +27,35 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Parking lot ID is required' });
       }
 
+      // If parkingLot data is not provided, fetch it from transit-data
+      let parkingLotData = parkingLot || {};
+
+      if (!parkingLot || Object.keys(parkingLot).length === 0) {
+        try {
+          // Import transit API to get parking lot details
+          const { generateParkingLots } = await import('../services/transitAPI.js');
+          const allParkingLots = generateParkingLots();
+          const foundLot = allParkingLots.find(lot => lot.id === Number(parkingLotId));
+
+          if (foundLot) {
+            parkingLotData = {
+              id: foundLot.id,
+              name: foundLot.name,
+              location: foundLot.location,
+              capacity: foundLot.capacity,
+              availableSpots: foundLot.availableSpots
+            };
+          }
+        } catch (err) {
+          console.error('Error fetching parking lot details:', err);
+        }
+      }
+
       const favorite = {
         id: `${userId}-${parkingLotId}`,
         userId,
-        parkingLotId,
-        parkingLot: parkingLot || {},
+        parkingLotId: Number(parkingLotId),
+        parkingLot: parkingLotData,
         createdAt: new Date()
       };
 
