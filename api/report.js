@@ -4,14 +4,15 @@ import validator from 'validator';
 export default async function handler(req, res) {
   // Enable CORS
   const origin = req.headers.origin;
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',') 
-    : ['http://localhost:3000'];
-  
-  if (allowedOrigins.includes(origin)) {
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000', 'http://localhost:5173'];
+
+  // Allow all Vercel deployments
+  if (origin && (allowedOrigins.includes(origin) || origin.includes('vercel.app'))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
-  
+
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -24,9 +25,14 @@ export default async function handler(req, res) {
     try {
       const { location, description, category, imageUrl } = req.body;
 
+      // Log the received data for debugging
+      console.log('📥 Received report data:', { location, description, category, imageUrl });
+
       if (!location || !Array.isArray(location) || location.length !== 2) {
+        console.error('❌ Invalid location:', location);
         return res.status(400).json({
-          message: 'Invalid location format. Expected [latitude, longitude]'
+          message: 'Invalid location format. Expected [latitude, longitude]',
+          received: location
         });
       }
 
@@ -85,9 +91,9 @@ export default async function handler(req, res) {
       });
     } catch (error) {
       console.error('❌ Error submitting report:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Error submitting report. Please try again later.',
-        error: error.message 
+        error: error.message
       });
     }
   } else {
