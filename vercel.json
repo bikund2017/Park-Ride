@@ -8,19 +8,22 @@
         "distDir": "client/dist"
       }
     },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
+    { "src": "api/health.js", "use": "@vercel/node" },
+    { "src": "api/test.js", "use": "@vercel/node" },
+    { "src": "api/transit-data.js", "use": "@vercel/node" },
+    { "src": "api/reports.js", "use": "@vercel/node" },
+    { "src": "api/report.js", "use": "@vercel/node" },
+    { "src": "api/favorites.js", "use": "@vercel/node" },
+    { "src": "api/favorites/delete.js", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/api/health", "dest": "/api/health.js" },
+    { "src": "/api/test", "dest": "/api/test.js" },
+    { "src": "/api/transit-data", "dest": "/api/transit-data.js" },
+    { "src": "/api/reports", "dest": "/api/reports.js" },
+    { "src": "/api/report", "dest": "/api/report.js" },
+    { "src": "/api/favorites", "dest": "/api/favorites.js" },
+    { "src": "/api/favorites/delete", "dest": "/api/favorites/delete.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
