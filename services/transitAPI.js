@@ -1,10 +1,6 @@
 import axios from 'axios';
 import config from '../config.js';
 
-/**
- * Real API Integration Service for Delhi Transit Data
- * Integrates with multiple real-time data sources
- */
 
 // API Configuration
 const APIS = {

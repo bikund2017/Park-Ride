@@ -25,7 +25,7 @@
     "react",
     "nodejs"
   ],
-  "author": "Your Name",
+  "author": "Bikund Kumar",
   "license": "MIT",
   "dependencies": {
     "@faker-js/faker": "^10.1.0",

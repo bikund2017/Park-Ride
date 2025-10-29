@@ -1,14 +1,12 @@
 export default function handler(req, res) {
   // Enable CORS
   const origin = req.headers.origin;
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',') 
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
     : ['http://localhost:3000'];
-  
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
-  
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -29,13 +27,12 @@ export default function handler(req, res) {
           cloudinary: !!process.env.CLOUDINARY_CLOUD_NAME
         }
       };
-      
       res.status(200).json(health);
     } catch (error) {
       console.error('Health check error:', error);
-      res.status(500).json({ 
-        status: 'error', 
-        message: error.message 
+      res.status(500).json({
+        status: 'error',
+        message: error.message
       });
     }
   } else {
