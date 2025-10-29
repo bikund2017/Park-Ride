@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 // Socket.IO imported conditionally to avoid errors on Vercel
 // REMOVED: import axios from 'axios'; - axios causes blank screen on Vercel
+import { useAuth } from './contexts/AuthContext.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import Login from './pages/Login.jsx';
+import Signup from './pages/Signup.jsx';
 import MapView from './components/MapView.jsx';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -15,6 +19,10 @@ import './index.css';
 import './map-fix.css';
 
 function App() {
+  const { currentUser } = useAuth();
+  const userId = currentUser?.uid || 'anonymous';
+  const userName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User';
+  
   const [parkingData, setParkingData] = useState([]);
   const [transitData, setTransitData] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -76,7 +84,7 @@ function App() {
         setIsLoadingFavorites(true);
         safetyTimer = setTimeout(() => setIsLoadingFavorites(false), 5000);
       }
-      const response = await fetch('/api/favorites?userId=anonymous');
+      const response = await fetch(`/api/favorites?userId=${userId}`);
       const data = await response.json();
       setFavorites(data.favorites || []);
     } catch (error) {
@@ -104,7 +112,7 @@ function App() {
         },
         body: JSON.stringify({
           parkingLotId: Number(parkingLotId),
-          userId: 'anonymous'
+          userId: userId
         })
       });
       const data = await response.json();
@@ -118,7 +126,7 @@ function App() {
   // Remove from favorites function
   const removeFromFavorites = async (parkingLotId) => {
     try {
-      await fetch(`/api/favorites/delete?userId=anonymous&parkingLotId=${parkingLotId}`, {
+      await fetch(`/api/favorites/delete?userId=${userId}&parkingLotId=${parkingLotId}`, {
         method: 'DELETE'
       });
       setFavorites(prev => prev.filter(fav => fav.parkingLotId !== parkingLotId));
@@ -189,78 +197,91 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="app-modern">
-        <Navbar />
-        <Header 
-          isConnected={isConnected}
-          metroCount={metroCount}
-          busCount={busCount}
-          trainCount={trainCount}
-          parkingCount={parkingData.length}
-          dataSource={dataSource}
-        />
-        <Routes>
-          <Route 
-            path="/" 
-            element={(
-              <Home>
-                <div className="map-wrapper">
-                  <MapView 
-                    parkingData={parkingData} 
-                    transitData={transitData}
-                    onMapClick={handleMapClick}
-                    reports={reports}
-                    onUpvote={handleUpvote}
-                  />
-                </div>
-                <Sidebar 
-                  parkingData={parkingData}
-                  transitData={transitData}
-                  selectedLocation={selectedLocation}
-                  onClearLocation={handleClearLocation}
-                  metroCount={metroCount}
-                  busCount={busCount}
-                  trainCount={trainCount}
-                  reports={reports}
-                  onUpvote={handleUpvote}
-                  onRefreshReports={fetchReports}
-                  isLoadingReports={isLoadingReports}
-                  isLoadingData={isLoadingData}
-                  favorites={favorites}
-                  onAddToFavorites={addToFavorites}
-                  onRemoveFromFavorites={removeFromFavorites}
-                  onRefreshFavorites={fetchFavorites}
-                  isLoadingFavorites={isLoadingFavorites}
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        
+        {/* Protected routes */}
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <div className="app-modern">
+              <Navbar />
+              <Header 
+                isConnected={isConnected}
+                metroCount={metroCount}
+                busCount={busCount}
+                trainCount={trainCount}
+                parkingCount={parkingData.length}
+                dataSource={dataSource}
+                userName={userName}
+                userEmail={currentUser?.email}
+              />
+              <Routes>
+                <Route 
+                  path="/" 
+                  element={(
+                    <Home>
+                      <div className="map-wrapper">
+                        <MapView 
+                          parkingData={parkingData} 
+                          transitData={transitData}
+                          onMapClick={handleMapClick}
+                          reports={reports}
+                          onUpvote={handleUpvote}
+                        />
+                      </div>
+                      <Sidebar 
+                        parkingData={parkingData}
+                        transitData={transitData}
+                        selectedLocation={selectedLocation}
+                        onClearLocation={handleClearLocation}
+                        metroCount={metroCount}
+                        busCount={busCount}
+                        trainCount={trainCount}
+                        reports={reports}
+                        onUpvote={handleUpvote}
+                        onRefreshReports={fetchReports}
+                        isLoadingReports={isLoadingReports}
+                        isLoadingData={isLoadingData}
+                        favorites={favorites}
+                        onAddToFavorites={addToFavorites}
+                        onRemoveFromFavorites={removeFromFavorites}
+                        onRefreshFavorites={fetchFavorites}
+                        isLoadingFavorites={isLoadingFavorites}
+                      />
+                    </Home>
+                  )}
                 />
-              </Home>
-            )}
-          />
-          <Route 
-            path="/reports" 
-            element={(
-              <Reports 
-                reports={reports}
-                onUpvote={handleUpvote}
-                onRefreshReports={fetchReports}
-                isLoadingReports={isLoadingReports}
-              />
-            )} 
-          />
-          <Route 
-            path="/favorites" 
-            element={(
-              <Favorites 
-                favorites={favorites}
-                onRemoveFromFavorites={removeFromFavorites}
-                onRefreshFavorites={fetchFavorites}
-                isLoadingFavorites={isLoadingFavorites}
-              />
-            )}
-          />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
+                <Route 
+                  path="/reports" 
+                  element={(
+                    <Reports 
+                      reports={reports}
+                      onUpvote={handleUpvote}
+                      onRefreshReports={fetchReports}
+                      isLoadingReports={isLoadingReports}
+                    />
+                  )} 
+                />
+                <Route 
+                  path="/favorites" 
+                  element={(
+                    <Favorites 
+                      favorites={favorites}
+                      onRemoveFromFavorites={removeFromFavorites}
+                      onRefreshFavorites={fetchFavorites}
+                      isLoadingFavorites={isLoadingFavorites}
+                    />
+                  )}
+                />
+                <Route path="/about" element={<About />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </ProtectedRoute>
+        } />
+      </Routes>
     </BrowserRouter>
   );
 }

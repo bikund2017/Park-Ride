@@ -1,7 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import './Header.css';
 
-const Header = ({ isConnected, metroCount, busCount, trainCount, parkingCount, dataSource }) => {
+const Header = ({ isConnected, metroCount, busCount, trainCount, parkingCount, dataSource, userName, userEmail }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
   return (
     <header className="header-modern">
       <div className="header-top">
@@ -17,6 +30,12 @@ const Header = ({ isConnected, metroCount, busCount, trainCount, parkingCount, d
           <div className="connection-status">
             <div className={`status-dot ${isConnected ? 'live' : 'offline'}`}></div>
             <span>{isConnected ? 'Live' : 'Offline'}</span>
+          </div>
+          <div className="user-profile-header">
+            <span className="user-name" title={userEmail || userName}>👤 {userName}</span>
+            <button onClick={handleLogout} className="btn-logout-header">
+              🚪 Logout
+            </button>
           </div>
         </div>
       </div>
