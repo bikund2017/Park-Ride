@@ -222,8 +222,15 @@ function App() {
   const busCount = transitData.filter(v => v.vehicleType === 'bus').length;
   const trainCount = transitData.filter(v => v.vehicleType === 'train').length;
 
+  // Add error logging
+  useEffect(() => {
+    console.log('App mounted successfully');
+    console.log('Environment:', window.location.hostname);
+    console.log('Is Vercel:', window.location.hostname.includes('vercel.app'));
+  }, []);
+
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <div className="app-modern">
         <Navbar />
         <Header 

@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+export default function handler(req, res) {
   // Enable CORS
   const origin = req.headers.origin;
   const allowedOrigins = process.env.ALLOWED_ORIGINS 
