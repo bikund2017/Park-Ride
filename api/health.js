@@ -31,7 +31,7 @@ export default function handler(req, res) {
       connectedClients: 0
     }
   };
-  
+
   res.status(200).json(health);
 }
 

@@ -2,7 +2,6 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
-import config from '../config.js';
 
 const router = express.Router();
 
@@ -36,9 +35,9 @@ router.post(
 
     try {
       const user = await User.create({ name, email, password, phone });
-      
+
       const token = generateToken(user);
-      
+
       res.status(201).json({
         success: true,
         token,
@@ -88,7 +87,7 @@ router.post(
 
       // Return jsonwebtoken
       const token = generateToken(user);
-      
+
       res.json({
         success: true,
         token,

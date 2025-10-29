@@ -4,7 +4,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { faker } from '@faker-js/faker';
 import cors from 'cors';
-import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
@@ -16,17 +15,19 @@ import config from './config.js';
 import authRoutes from './routes/auth.js';
 import { db, admin } from './firebase.js';
 import transitAPI from './services/transitAPI.js';
+import logger from './utils/logger.js';
+import morganMiddleware from './utils/morganConfig.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🚀 Starting Park & Ride+ Delhi NCR Server...');
-console.log(`Environment: ${config.nodeEnv}`);
+logger.info('🚀 Starting Park & Ride+ Delhi NCR Server...');
+logger.info(`Environment: ${config.nodeEnv}`);
 
 const app = express();
 
-console.log('🚀 Starting Park & Ride+ Delhi NCR Server...');
-console.log(`Environment: ${config.nodeEnv}`);
+// Request logging middleware
+app.use(morganMiddleware);
 
 // Security middleware
 app.disable('x-powered-by');
@@ -72,7 +73,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -106,115 +107,95 @@ const io = new Server(server, {
 
 let parkingLots = [];
 let transitVehicles = [];
-let lastApiCall = 0;
-const API_RATE_LIMIT_MS = 1000;
 
 console.log('📡 Setting up Delhi Transit API integration...');
 
 async function fetchDelhiTransitData(silent = false) {
-  const now = Date.now();
-  if (now - lastApiCall < API_RATE_LIMIT_MS) {
-    if (!silent) console.log('⚠️ Rate limiting API calls...');
-    return transitVehicles;
+  const realData = await fetchAllRealTransitData(silent);
+  if (realData && realData.length > 0) {
+    return realData;
   }
-  lastApiCall = now;
-
-  try {
-    if (!silent) console.log('🔄 Attempting to fetch REAL Delhi transit data from APIs...');
-    
-    const realData = await transitAPI.fetchAllRealTransitData();
-    
-    if (realData && realData.length > 0) {
-      console.log(`✅ SUCCESS! Fetched ${realData.length} REAL transit vehicles`);
-      console.log(`   - Metro: ${realData.filter(v => v.vehicleType === 'metro').length}`);
-      console.log(`   - Bus: ${realData.filter(v => v.vehicleType === 'bus').length}`);
-      console.log(`   - Train: ${realData.filter(v => v.vehicleType === 'train').length}`);
-      return realData;
-    }
-
-    if (!silent) console.log('⚠️ No real data available from APIs');
-  } catch (error) {
-    if (!silent) console.log('⚠️ API fetch error:', error.message);
-  }
-
+  // Use simulated data as fallback
   if (!silent) console.log('📊 Using simulated data as fallback');
   return generateFallbackTransitData();
 }
 
-function generateRoutePathForVehicle(vehicle) {
-  const lat = parseFloat(vehicle.latitude) || 28.6139;
-  const lng = parseFloat(vehicle.longitude) || 77.2090;
-  const routePath = [];
-  
-  for (let i = 0; i < 10; i++) {
-    const offset = (i - 5) * 0.01;
-    routePath.push([lat + offset, lng + offset * 0.5]);
+async function fetchAllRealTransitData(silent = false) {
+  try {
+    // Try to fetch real data
+    const realData = await transitAPI.getAllTransitData();
+    if (realData && realData.length > 0) {
+      if (!silent) console.log(`✅ Fetched ${realData.length} real transit vehicles`);
+      return realData;
+    }
+    if (!silent) console.log('⚠️ No real data available from APIs');
+    return null;
+  } catch (error) {
+    return null;
   }
-  
-  return routePath;
 }
 
 function generateFallbackTransitData() {
   console.log('🔄 Generating comprehensive Delhi Transit data (Metro, Bus, Train)...');
-  
+
   const metroLines = [
-    { name: "Red Line (Rithala - Shaheed Sthal)", color: "#E41E26", stations: 29 },
-    { name: "Blue Line (Dwarka - Noida/Vaishali)", color: "#0066B3", stations: 50 },
-    { name: "Yellow Line (Samaypur Badli - HUDA City Centre)", color: "#FFD100", stations: 37 },
-    { name: "Green Line (Mundka - Inderlok)", color: "#00A650", stations: 23 },
-    { name: "Violet Line (Kashmere Gate - Raja Nahar Singh)", color: "#9B26AF", stations: 34 },
-    { name: "Pink Line (Majlis Park - Shiv Vihar)", color: "#E91E63", stations: 38 },
-    { name: "Magenta Line (Janakpuri West - Botanical Garden)", color: "#FF00FF", stations: 25 },
-    { name: "Orange Line (New Delhi - Dwarka)", color: "#FF6600", stations: 6 },
-    { name: "Rapid Metro (Sikanderpur - Cyber City)", color: "#00CED1", stations: 5 },
-    { name: "Aqua Line (Noida Sector 51 - Depot)", color: "#00BFFF", stations: 21 }
+    { name: 'Red Line (Rithala - Shaheed Sthal)', color: '#E41E26', stations: 29 },
+    { name: 'Blue Line (Dwarka - Noida/Vaishali)', color: '#0066B3', stations: 50 },
+    { name: 'Yellow Line (Samaypur Badli - HUDA City Centre)', color: '#FFD100', stations: 37 },
+    { name: 'Green Line (Mundka - Inderlok)', color: '#00A650', stations: 23 },
+    { name: 'Violet Line (Kashmere Gate - Raja Nahar Singh)', color: '#9B26AF', stations: 34 },
+    { name: 'Pink Line (Majlis Park - Shiv Vihar)', color: '#E91E63', stations: 38 },
+    { name: 'Magenta Line (Janakpuri West - Botanical Garden)', color: '#FF00FF', stations: 25 },
+    { name: 'Orange Line (New Delhi - Dwarka)', color: '#FF6600', stations: 6 },
+    { name: 'Rapid Metro (Sikanderpur - Cyber City)', color: '#00CED1', stations: 5 },
+    { name: 'Aqua Line (Noida Sector 51 - Depot)', color: '#00BFFF', stations: 21 }
   ];
 
   const busRoutes = [
-    { name: "DTC 764 (ISBT - Nehru Place)", stops: 45 },
-    { name: "DTC 534 (Old Delhi - Dwarka)", stops: 38 },
-    { name: "DTC 423 (Anand Vihar - Vasant Vihar)", stops: 52 },
-    { name: "Cluster AC (Connaught Place - Gurgaon)", stops: 28 },
-    { name: "DTC 181 (Kashmere Gate - Saket)", stops: 41 }
+    { name: 'DTC 764 (ISBT - Nehru Place)', stops: 45 },
+    { name: 'DTC 534 (Old Delhi - Dwarka)', stops: 38 },
+    { name: 'DTC 423 (Anand Vihar - Vasant Vihar)', stops: 52 },
+    { name: 'Cluster AC (Connaught Place - Gurgaon)', stops: 28 },
+    { name: 'DTC 181 (Kashmere Gate - Saket)', stops: 41 }
   ];
 
   const trainRoutes = [
-    { name: "Rajdhani Express (Delhi - Mumbai)", platform: 2 },
-    { name: "Shatabdi Express (Delhi - Chandigarh)", platform: 5 },
-    { name: "Local Train (Delhi - Ghaziabad)", platform: 8 },
-    { name: "Duronto Express (Delhi - Kolkata)", platform: 3 }
+    { name: 'Rajdhani Express (Delhi - Mumbai)', platform: 2 },
+    { name: 'Shatabdi Express (Delhi - Chandigarh)', platform: 5 },
+    { name: 'Local Train (Delhi - Ghaziabad)', platform: 8 },
+    { name: 'Duronto Express (Delhi - Kolkata)', platform: 3 }
   ];
 
   const delhiLocations = [
-    { name: "Rajiv Chowk Metro", coords: [28.6328, 77.2197], type: "metro" },
-    { name: "Kashmere Gate Metro", coords: [28.6676, 77.2285], type: "metro" },
-    { name: "Hauz Khas Metro", coords: [28.5494, 77.2001], type: "metro" },
-    { name: "Dwarka Sector 21 Metro", coords: [28.5521, 77.0590], type: "metro" },
-    { name: "Noida City Centre Metro", coords: [28.5744, 77.3564], type: "metro" },
-    { name: "Chandni Chowk Metro", coords: [28.6506, 77.2303], type: "metro" },
-    { name: "AIIMS Metro", coords: [28.5672, 77.2100], type: "metro" },
-    { name: "Botanical Garden Metro", coords: [28.5641, 77.3344], type: "metro" },
-    { name: "Vaishali Metro", coords: [28.6491, 77.3410], type: "metro" },
-    { name: "Huda City Centre Metro", coords: [28.4595, 77.0727], type: "metro" },
-    { name: "ISBT Kashmere Gate", coords: [28.6692, 77.2289], type: "bus" },
-    { name: "Nehru Place Terminal", coords: [28.5494, 77.2501], type: "bus" },
-    { name: "Anand Vihar ISBT", coords: [28.6469, 77.3160], type: "bus" },
-    { name: "Dwarka Sector 9", coords: [28.5810, 77.0707], type: "bus" },
-    { name: "Saket District Centre", coords: [28.5244, 77.2066], type: "bus" },
-    { name: "New Delhi Railway Station", coords: [28.6431, 77.2197], type: "train" },
-    { name: "Old Delhi Railway Station", coords: [28.6642, 77.2295], type: "train" },
-    { name: "Hazrat Nizamuddin Station", coords: [28.5875, 77.2506], type: "train" },
-    { name: "Anand Vihar Terminal", coords: [28.6469, 77.3160], type: "train" }
+    { name: 'Rajiv Chowk Metro', coords: [28.6328, 77.2197], type: 'metro' },
+    { name: 'Kashmere Gate Metro', coords: [28.6676, 77.2285], type: 'metro' },
+    { name: 'Hauz Khas Metro', coords: [28.5494, 77.2001], type: 'metro' },
+    { name: 'Dwarka Sector 21 Metro', coords: [28.5521, 77.0590], type: 'metro' },
+    { name: 'Noida City Centre Metro', coords: [28.5744, 77.3564], type: 'metro' },
+    { name: 'Chandni Chowk Metro', coords: [28.6506, 77.2303], type: 'metro' },
+    { name: 'AIIMS Metro', coords: [28.5672, 77.2100], type: 'metro' },
+    { name: 'Botanical Garden Metro', coords: [28.5641, 77.3344], type: 'metro' },
+    { name: 'Vaishali Metro', coords: [28.6491, 77.3410], type: 'metro' },
+    { name: 'Huda City Centre Metro', coords: [28.4595, 77.0727], type: 'metro' },
+    { name: 'ISBT Kashmere Gate', coords: [28.6692, 77.2289], type: 'bus' },
+    { name: 'Nehru Place Terminal', coords: [28.5494, 77.2501], type: 'bus' },
+    { name: 'Anand Vihar ISBT', coords: [28.6469, 77.3160], type: 'bus' },
+    { name: 'Dwarka Sector 9', coords: [28.5810, 77.0707], type: 'bus' },
+    { name: 'Saket District Centre', coords: [28.5244, 77.2066], type: 'bus' },
+    { name: 'New Delhi Railway Station', coords: [28.6431, 77.2197], type: 'train' },
+    { name: 'Old Delhi Railway Station', coords: [28.6642, 77.2295], type: 'train' },
+    { name: 'Hazrat Nizamuddin Station', coords: [28.5875, 77.2506], type: 'train' },
+    { name: 'Anand Vihar Terminal', coords: [28.6469, 77.3160], type: 'train' }
   ];
 
   const fallbackData = [];
-  
+
   // Generate Metro vehicles
   for (let i = 0; i < 10; i++) {
     const metro = metroLines[i];
     const location = delhiLocations[i];
     const routePath = [];
-    
+
     for (let j = 0; j < 15; j++) {
       const offset = (j - 7) * 0.02;
       routePath.push([
@@ -222,7 +203,7 @@ function generateFallbackTransitData() {
         location.coords[1] + offset * 0.5 + (Math.random() - 0.5) * 0.005
       ]);
     }
-    
+
     fallbackData.push({
       id: `metro-${i + 1}`,
       routeName: metro.name,
@@ -239,13 +220,13 @@ function generateFallbackTransitData() {
       crowdLevel: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)]
     });
   }
-  
+
   // Generate Bus vehicles
   for (let i = 0; i < 5; i++) {
     const bus = busRoutes[i];
     const location = delhiLocations[i + 10];
     const routePath = [];
-    
+
     for (let j = 0; j < 10; j++) {
       const offset = (j - 5) * 0.015;
       routePath.push([
@@ -253,7 +234,7 @@ function generateFallbackTransitData() {
         location.coords[1] + offset * 0.7 + (Math.random() - 0.5) * 0.008
       ]);
     }
-    
+
     fallbackData.push({
       id: `bus-${i + 1}`,
       routeName: bus.name,
@@ -270,13 +251,13 @@ function generateFallbackTransitData() {
       acAvailable: i % 2 === 0
     });
   }
-  
+
   // Generate Train vehicles
   for (let i = 0; i < 4; i++) {
     const train = trainRoutes[i];
     const location = delhiLocations[i + 15];
     const routePath = [];
-    
+
     for (let j = 0; j < 8; j++) {
       const offset = (j - 4) * 0.03;
       routePath.push([
@@ -284,7 +265,7 @@ function generateFallbackTransitData() {
         location.coords[1] + offset * 0.6
       ]);
     }
-    
+
     fallbackData.push({
       id: `train-${i + 1}`,
       routeName: train.name,
@@ -300,27 +281,27 @@ function generateFallbackTransitData() {
       coaches: Math.floor(Math.random() * 8) + 12
     });
   }
-  
+
   console.log(`✅ Generated ${fallbackData.length} transit vehicles: ${fallbackData.filter(v => v.vehicleType === 'metro').length} Metro, ${fallbackData.filter(v => v.vehicleType === 'bus').length} Bus, ${fallbackData.filter(v => v.vehicleType === 'train').length} Train`);
   return fallbackData;
 }
 
 async function generateData() {
   console.log('🏗️ Setting up Delhi NCR parking locations...');
-  
+
   const delhiLocations = [
-    { name: "Connaught Place", coords: [28.6315, 77.2167] },
-    { name: "India Gate", coords: [28.6129, 77.2295] },
-    { name: "Red Fort", coords: [28.6562, 77.2410] },
-    { name: "Chandni Chowk", coords: [28.6506, 77.2303] },
-    { name: "AIIMS", coords: [28.5672, 77.2100] },
-    { name: "Hauz Khas", coords: [28.5494, 77.2001] },
-    { name: "Karol Bagh", coords: [28.6519, 77.1905] },
-    { name: "Rajouri Garden", coords: [28.6469, 77.1201] },
-    { name: "Dwarka", coords: [28.5921, 77.0460] },
-    { name: "Gurgaon Cyber City", coords: [28.4950, 77.0890] },
-    { name: "Noida City Centre", coords: [28.5744, 77.3564] },
-    { name: "Faridabad", coords: [28.4089, 77.3178] }
+    { name: 'Connaught Place', coords: [28.6315, 77.2167] },
+    { name: 'India Gate', coords: [28.6129, 77.2295] },
+    { name: 'Red Fort', coords: [28.6562, 77.2410] },
+    { name: 'Chandni Chowk', coords: [28.6506, 77.2303] },
+    { name: 'AIIMS', coords: [28.5672, 77.2100] },
+    { name: 'Hauz Khas', coords: [28.5494, 77.2001] },
+    { name: 'Karol Bagh', coords: [28.6519, 77.1905] },
+    { name: 'Rajouri Garden', coords: [28.6469, 77.1201] },
+    { name: 'Dwarka', coords: [28.5921, 77.0460] },
+    { name: 'Gurgaon Cyber City', coords: [28.4950, 77.0890] },
+    { name: 'Noida City Centre', coords: [28.5744, 77.3564] },
+    { name: 'Faridabad', coords: [28.4089, 77.3178] }
   ];
 
   // Generate parking lots
@@ -335,7 +316,7 @@ async function generateData() {
         location.coords[1] + (Math.random() - 0.5) * 0.01
       ],
       capacity: faker.number.int({ min: 100, max: 500 }),
-      availableSpots: faker.number.int({ min: 10, max: 100 }),
+      availableSpots: faker.number.int({ min: 10, max: 100 })
     });
   }
 
@@ -355,12 +336,12 @@ async function updateData() {
 
   const now = Date.now();
   const apiCheckInterval = usingRealData ? 30000 : 300000;
-  
+
   if (!updateData.lastApiCall || (now - updateData.lastApiCall) > apiCheckInterval) {
     const silent = !usingRealData && apiCheckInterval === 300000;
     const fetchedData = await fetchDelhiTransitData(silent);
     const isRealData = fetchedData && fetchedData.length > 0 && !fetchedData[0].id?.startsWith('metro-');
-    
+
     if (fetchedData && fetchedData.length > 0) {
       transitVehicles = fetchedData;
       usingRealData = isRealData;
@@ -376,7 +357,7 @@ async function updateData() {
   }
 
   io.emit('update-data', { parkingLots, transitVehicles });
-  
+
   const timestamp = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });
   const dataSource = usingRealData ? '🟢 Live API' : '🟡 Simulated';
   console.log(`🔄 Delhi NCR data updated at ${timestamp} - ${transitVehicles.length} vehicles ${dataSource}`);
@@ -385,7 +366,7 @@ async function updateData() {
 io.on('connection', (socket) => {
   console.log(`👤 New client connected: ${socket.id}`);
   socket.emit('update-data', { parkingLots, transitVehicles });
-  
+
   socket.on('disconnect', () => {
     console.log(`👋 Client disconnected: ${socket.id}`);
   });
@@ -451,37 +432,37 @@ app.post('/api/upload-image', (req, res) => {
 app.post('/api/report', async (req, res) => {
   try {
     const { location, description, category, imageUrl } = req.body;
-    
+
     if (!location || !Array.isArray(location) || location.length !== 2) {
       return res.status(400).json({ message: 'Invalid location format. Expected [latitude, longitude]' });
     }
-    
+
     const [lat, lng] = location;
     if (typeof lat !== 'number' || typeof lng !== 'number') {
       return res.status(400).json({ message: 'Location must contain numeric coordinates' });
     }
-    
+
     if (lat < 28.3 || lat > 28.9 || lng < 76.8 || lng > 77.4) {
       return res.status(400).json({ message: 'Coordinates must be within Delhi NCR region' });
     }
-    
+
     if (!description?.trim()) {
       return res.status(400).json({ message: 'Description is required' });
     }
-    
+
     const cleanDescription = validator.escape(description.trim());
-    
+
     if (cleanDescription.length < 10) {
       return res.status(400).json({ message: 'Description must be at least 10 characters long' });
     }
-    
+
     if (cleanDescription.length > 1000) {
       return res.status(400).json({ message: 'Description must be less than 1000 characters' });
     }
-    
+
     const validCategories = ['parking', 'traffic', 'facility', 'metro', 'safety', 'general'];
     const validCategory = validCategories.includes(category) ? category : 'general';
-    
+
     const report = {
       location,
       description: cleanDescription,
@@ -495,13 +476,13 @@ app.post('/api/report', async (req, res) => {
         ip: req.ip || req.connection.remoteAddress || 'Unknown'
       }
     };
-    
+
     const docRef = await db.collection('reports').add(report);
     console.log(`📝 New report submitted: ${docRef.id}`);
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: 'Report submitted successfully',
-      reportId: docRef.id 
+      reportId: docRef.id
     });
   } catch (error) {
     console.error('❌ Error submitting report:', error);
@@ -511,18 +492,18 @@ app.post('/api/report', async (req, res) => {
 
 app.get('/api/reports', async (req, res) => {
   try {
-    const { category, search, limit = 100, skip = 0 } = req.query;
-    
+    const { category, search, limit = 100 } = req.query;
+
     let query = db.collection('reports');
-    
+
     if (category && category !== 'all') {
       query = query.where('category', '==', category);
     }
-    
+
     query = query.orderBy('timestamp', 'desc').limit(parseInt(limit));
-    
+
     const reportsSnapshot = await query.get();
-    
+
     let reports = [];
     reportsSnapshot.forEach(doc => {
       const data = doc.data();
@@ -539,17 +520,17 @@ app.get('/api/reports', async (req, res) => {
         clientInfo: data.clientInfo || {}
       });
     });
-    
+
     if (search && search.trim()) {
       const searchLower = search.toLowerCase();
-      reports = reports.filter(report => 
+      reports = reports.filter(report =>
         report.description.toLowerCase().includes(searchLower) ||
         report.category.toLowerCase().includes(searchLower)
       );
     }
-    
+
     const responseData = { reports, total: reports.length };
-    
+
     console.log(`📊 Retrieved ${reports.length} reports${category ? ` (filtered by: ${category})` : ''}${search ? ` (search: ${search})` : ''}`);
     res.json(responseData);
   } catch (error) {
@@ -563,14 +544,14 @@ app.post('/api/reports/:id/upvote', async (req, res) => {
     const { id } = req.params;
     const reportRef = db.collection('reports').doc(id);
     const reportDoc = await reportRef.get();
-    
+
     if (!reportDoc.exists) {
       return res.status(404).json({ message: 'Report not found' });
     }
-    
+
     const currentUpvotes = reportDoc.data().upvotes || 0;
     await reportRef.update({ upvotes: currentUpvotes + 1 });
-    
+
     res.json({ message: 'Report upvoted successfully', upvotes: currentUpvotes + 1 });
   } catch (error) {
     console.error('❌ Error upvoting report:', error);
@@ -583,16 +564,16 @@ app.post('/api/reports/:id/resolve', async (req, res) => {
     const { id } = req.params;
     const reportRef = db.collection('reports').doc(id);
     const reportDoc = await reportRef.get();
-    
+
     if (!reportDoc.exists) {
       return res.status(404).json({ message: 'Report not found' });
     }
-    
-    await reportRef.update({ 
+
+    await reportRef.update({
       resolved: true,
       resolvedAt: admin.firestore?.FieldValue?.serverTimestamp() || new Date()
     });
-    
+
     res.json({ message: 'Report marked as resolved' });
   } catch (error) {
     console.error('❌ Error resolving report:', error);
@@ -604,7 +585,7 @@ app.delete('/api/reports/:id', async (req, res) => {
   try {
     const { id } = req.params;
     await db.collection('reports').doc(id).delete();
-    
+
     console.log(`🗑️ Report deleted: ${id}`);
     res.json({ message: 'Report deleted successfully' });
   } catch (error) {
@@ -617,7 +598,7 @@ app.get('/api/transit-info', (req, res) => {
   const metroCount = transitVehicles.filter(v => v.vehicleType === 'metro').length;
   const busCount = transitVehicles.filter(v => v.vehicleType === 'bus').length;
   const trainCount = transitVehicles.filter(v => v.vehicleType === 'train').length;
-  
+
   res.json({
     message: 'Delhi Transit Data API Integration',
     dataSource: 'Real-time Multi-Source Integration',
@@ -634,7 +615,7 @@ app.get('/api/transit-info', (req, res) => {
       bus: busCount,
       train: trainCount
     },
-    dataMode: transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ? 
+    dataMode: transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ?
       '🔴 Simulated (Fallback)' : '🟢 Real-time (Live APIs)',
     lastUpdate: new Date().toISOString(),
     parkingLots: parkingLots.length,
@@ -652,7 +633,7 @@ app.get('/api/transit-info', (req, res) => {
 app.post('/api/favorites', async (req, res) => {
   try {
     const { parkingLotId, userId = 'anonymous' } = req.body;
-    
+
     if (parkingLotId === undefined || parkingLotId === null || parkingLotId === '') {
       return res.status(400).json({ message: 'Parking lot ID is required' });
     }
@@ -660,13 +641,13 @@ app.post('/api/favorites', async (req, res) => {
     if (Number.isNaN(parsedId)) {
       return res.status(400).json({ message: 'Parking lot ID must be a number' });
     }
-    
+
     const parkingLot = parkingLots.find(lot => Number(lot.id) === Number(parsedId));
     if (!parkingLot) {
       const availableIds = parkingLots.map(l => l.id);
-      return res.status(404).json({ message: `Parking lot not found`, availableIds });
+      return res.status(404).json({ message: 'Parking lot not found', availableIds });
     }
-    
+
     const favorite = {
       id: `${userId}-${parsedId}`,
       userId,
@@ -674,9 +655,9 @@ app.post('/api/favorites', async (req, res) => {
       parkingLot,
       createdAt: new Date()
     };
-    
+
     await db.collection('favorites').doc(favorite.id).set(favorite);
-    
+
     res.json({ message: 'Added to favorites', favorite });
   } catch (error) {
     console.error('❌ Error adding favorite:', error);
@@ -687,18 +668,18 @@ app.post('/api/favorites', async (req, res) => {
 app.get('/api/favorites/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const favoritesSnapshot = await db.collection('favorites')
       .where('userId', '==', userId)
       .get();
-    
+
     const favorites = [];
     favoritesSnapshot.forEach(doc => {
       favorites.push(doc.data());
     });
-    
+
     favorites.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
+
     res.json({ favorites });
   } catch (error) {
     console.error('❌ Error fetching favorites:', error);
@@ -710,9 +691,9 @@ app.delete('/api/favorites/:userId/:parkingLotId', async (req, res) => {
   try {
     const { userId, parkingLotId } = req.params;
     const favoriteId = `${userId}-${parkingLotId}`;
-    
+
     await db.collection('favorites').doc(favoriteId).delete();
-    
+
     res.json({ message: 'Removed from favorites' });
   } catch (error) {
     console.error('❌ Error removing favorite:', error);
@@ -753,7 +734,7 @@ app.get('/api/health', async (req, res) => {
       connectedClients: io.engine.clientsCount
     }
   };
-  
+
   res.json(health);
 });
 
@@ -782,7 +763,7 @@ async function initializeApplication() {
   }
 }
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     status: 'error',
@@ -797,14 +778,14 @@ process.on('unhandledRejection', (err) => {
 
 const PORT = config.port;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running in ${config.nodeEnv} mode on port ${PORT}`);
-  console.log(`🗺️  Map: Delhi NCR centered at 28.6139°N, 77.2090°E`);
-  console.log(`🔑 API Key: ${config.delhiTransit.apiKey ? 'Configured' : 'Missing'}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📡 WebSocket: ${io ? 'Enabled' : 'Disabled'}`);
+  logger.info(`🚀 Server running in ${config.nodeEnv} mode on port ${PORT}`);
+  logger.info('🗺️  Map: Delhi NCR centered at 28.6139°N, 77.2090°E');
+  logger.info(`🔑 API Key: ${config.delhiTransit.apiKey ? 'Configured' : 'Missing'}`);
+  logger.info(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`📡 WebSocket: ${io ? 'Enabled' : 'Disabled'}`);
 });
 
 initializeApplication().catch(error => {
-  console.error('💥 Failed to initialize:', error.message);
+  logger.error('💥 Failed to initialize:', error.message);
   process.exit(1);
 });

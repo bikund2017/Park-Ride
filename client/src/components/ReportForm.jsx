@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import LoadingSpinner from './LoadingSpinner';
+import LoadingSpinner from './LoadingSpinner.jsx';
 import './ReportForm.css';
 
 const ReportForm = ({ selectedLocation, onClearLocation }) => {

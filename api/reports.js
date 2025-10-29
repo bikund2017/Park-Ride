@@ -13,18 +13,18 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { category, search, limit = 100, skip = 0 } = req.query;
-      
+      const { category, search, limit = 100 } = req.query;
+
       let query = db.collection('reports');
-      
+
       if (category && category !== 'all') {
         query = query.where('category', '==', category);
       }
-      
+
       query = query.orderBy('timestamp', 'desc').limit(parseInt(limit));
-      
+
       const reportsSnapshot = await query.get();
-      
+
       let reports = [];
       reportsSnapshot.forEach(doc => {
         const data = doc.data();
@@ -41,17 +41,17 @@ export default async function handler(req, res) {
           clientInfo: data.clientInfo || {}
         });
       });
-      
+
       if (search && search.trim()) {
         const searchLower = search.toLowerCase();
-        reports = reports.filter(report => 
+        reports = reports.filter(report =>
           report.description.toLowerCase().includes(searchLower) ||
           report.category.toLowerCase().includes(searchLower)
         );
       }
-      
+
       const responseData = { reports, total: reports.length };
-      
+
       res.status(200).json(responseData);
     } catch (error) {
       console.error('Error retrieving reports:', error);

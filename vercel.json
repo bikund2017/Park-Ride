@@ -2,23 +2,41 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/*.js",
+      "src": "server.js",
       "use": "@vercel/node"
     },
     {
-      "src": "client/build/**",
-      "use": "@vercel/static"
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "client/dist"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/socket.io/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/client/build/$1"
+      "dest": "/client/dist/$1"
     }
   ],
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  },
   "env": {
     "NODE_ENV": "production"
-  },
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": "client/build"
+  }
 }

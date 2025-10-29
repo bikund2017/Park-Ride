@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReportForm from './ReportForm';
-import LoadingSpinner from './LoadingSpinner';
-import RoutePlanner from './RoutePlanner';
+import ReportForm from './ReportForm.jsx';
+import LoadingSpinner from './LoadingSpinner.jsx';
+import RoutePlanner from './RoutePlanner.jsx';
 import './Sidebar.css';
 
 const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, metroCount, busCount, trainCount, reports, onUpvote, onRefreshReports, isLoadingReports, isLoadingData, favorites, onAddToFavorites, onRemoveFromFavorites, onRefreshFavorites, isLoadingFavorites }) => {

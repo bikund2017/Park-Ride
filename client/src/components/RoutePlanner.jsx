@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import LoadingSpinner from './LoadingSpinner';
+import LoadingSpinner from './LoadingSpinner.jsx';
 import './RoutePlanner.css';
 
 const RoutePlanner = ({ parkingData, transitData, selectedLocation }) => {

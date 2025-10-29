@@ -42,7 +42,7 @@ const APIS = {
 export async function fetchDelhiMetroData() {
   try {
     console.log('🚇 Fetching real Delhi Metro data...');
-    
+
     // Try Delhi Open Transit Data API
     const response = await axios.get(`${APIS.delhiTransit.baseUrl}/metro-positions`, {
       headers: {
@@ -88,7 +88,7 @@ export async function fetchDelhiMetroData() {
 export async function fetchDTCBusData() {
   try {
     console.log('🚌 Fetching real DTC Bus data...');
-    
+
     const response = await axios.get(`${APIS.dtc.baseUrl}/buses/live`, {
       headers: {
         'Authorization': `Bearer ${APIS.dtc.apiKey}`,
@@ -133,7 +133,7 @@ export async function fetchDTCBusData() {
 export async function fetchIndianRailwaysData() {
   try {
     console.log('🚂 Fetching real Indian Railways data...');
-    
+
     // Major Delhi railway stations
     const stations = ['NDLS', 'DLI', 'NZM', 'ANVT']; // New Delhi, Old Delhi, Nizamuddin, Anand Vihar
     const trainData = [];
@@ -190,7 +190,7 @@ export async function fetchIndianRailwaysData() {
 export async function fetchParkingData() {
   try {
     console.log('🅿️ Fetching real parking data...');
-    
+
     // Try to fetch from smart parking API
     const response = await axios.get(`${APIS.delhiTransit.baseUrl}/parking-availability`, {
       headers: {
@@ -226,7 +226,7 @@ export async function fetchParkingData() {
  */
 export async function fetchAllRealTransitData() {
   console.log('📡 Fetching all real transit data from APIs...');
-  
+
   const [metroData, busData, trainData] = await Promise.all([
     fetchDelhiMetroData(),
     fetchDTCBusData(),
@@ -234,7 +234,7 @@ export async function fetchAllRealTransitData() {
   ]);
 
   const allData = [];
-  
+
   if (metroData) allData.push(...metroData);
   if (busData) allData.push(...busData);
   if (trainData) allData.push(...trainData);
@@ -254,12 +254,12 @@ function generateRoutePath(vehicle) {
   const lat = parseFloat(vehicle.latitude || vehicle.lat || 28.6139);
   const lng = parseFloat(vehicle.longitude || vehicle.lng || 77.2090);
   const path = [];
-  
+
   for (let i = 0; i < 10; i++) {
     const offset = (i - 5) * 0.01;
     path.push([lat + offset, lng + offset * 0.5]);
   }
-  
+
   return path;
 }
 
@@ -273,7 +273,7 @@ function getStationCoordinates(stationCode) {
     'NZM': [28.5875, 77.2506],  // Nizamuddin
     'ANVT': [28.6469, 77.3160]  // Anand Vihar
   };
-  
+
   return stations[stationCode] || [28.6139, 77.2090];
 }
 
@@ -283,12 +283,12 @@ function getStationCoordinates(stationCode) {
 function generateTrainRoutePath(stationCode) {
   const coords = getStationCoordinates(stationCode);
   const path = [];
-  
+
   for (let i = 0; i < 8; i++) {
     const offset = (i - 4) * 0.03;
     path.push([coords[0] + offset, coords[1] + offset * 0.6]);
   }
-  
+
   return path;
 }
 

@@ -17,7 +17,7 @@ export const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       const userSnapshot = await User.collection.doc(decoded.id).get();
-      
+
       if (!userSnapshot.exists) {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }

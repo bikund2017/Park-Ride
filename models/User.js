@@ -29,7 +29,7 @@ const User = {
   async findByEmail(email) {
     const snapshot = await this.collection.where('email', '==', email).limit(1).get();
     if (snapshot.empty) return null;
-    
+
     const userDoc = snapshot.docs[0];
     return { id: userDoc.id, ...userDoc.data() };
   },

@@ -14,24 +14,24 @@ try {
   try {
     const serviceAccountPath = path.resolve(__dirname, 'serviceAccountKey.json');
     const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
-    
+
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
     });
-    
+
     console.log('✓ Firebase initialized with service account');
   } catch (fileError) {
     console.log('No service account file found, using default app');
     admin.initializeApp();
   }
-  
+
   db = admin.firestore();
   console.log('✓ Firestore initialized');
 } catch (error) {
   console.error('✗ Firebase initialization failed:', error.message);
   console.log('Note: Using mock database for reports');
-  
+
   // Create a mock db object to prevent crashes
   db = {
     collection: () => ({
