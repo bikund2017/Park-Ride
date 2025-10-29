@@ -1,5 +1,3 @@
-import cors from 'cors';
-import config from '../config.js';
 import { faker } from '@faker-js/faker';
 
 // Mock data generation for Vercel (since we can't run real-time updates)
