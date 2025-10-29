@@ -48,16 +48,15 @@ Set these in Vercel Dashboard → Settings → Environment Variables:
 - [ ] `DELHI_TRANSIT_API_KEY=your-api-key`
 
 **Important:**
-- [ ] `ALLOWED_ORIGINS=https://your-app.vercel.app`
+- [ ] `ALLOWED_ORIGINS=https://park-ride-new1.vercel.app`
 
-> **How to set ALLOWED_ORIGINS:**
-> 1. Deploy your app first to get the Vercel URL
-> 2. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
-> 3. Add: `ALLOWED_ORIGINS` = `https://your-actual-vercel-url.vercel.app`
-> 4. Click "Save" and redeploy if needed
+> **✅ Your Vercel Domain: `park-ride-new1.vercel.app`**
 > 
-> **Example:** If your app deploys to `https://park-ride-delhi.vercel.app`, 
-> then set `ALLOWED_ORIGINS=https://park-ride-delhi.vercel.app`
+> **Set this exact environment variable in Vercel Dashboard:**
+> 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+> 2. Add: `ALLOWED_ORIGINS` = `https://park-ride-new1.vercel.app`
+> 3. Environment: Production
+> 4. Click "Save" and redeploy if needed
 
 **Optional:**
 - [ ] `CLOUDINARY_CLOUD_NAME=your-cloud-name`
@@ -97,6 +96,13 @@ Set these in Vercel Dashboard → Settings → Environment Variables:
 - **API errors**: Verify Firebase credentials
 - **CORS errors**: Update `ALLOWED_ORIGINS`
 - **Module errors**: Check dependency versions
+- **"No Output Directory" error**: ✅ Fixed in vercel.json configuration
+
+### Recent Fixes Applied:
+✅ **Vercel Configuration Fixed** (October 29, 2025)
+- Removed conflicting `functions` property from vercel.json
+- Fixed output directory configuration for static build
+- Updated build process to use root package.json with `vercel-build` script
 
 ### Performance Checks
 - [ ] Page load speed acceptable

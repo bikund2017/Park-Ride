@@ -41,17 +41,25 @@ After deployment, Vercel will show you the URL:
 
 ### For Your Project Specifically:
 
-1. **Your app will likely be deployed to:**
-   ```
-   https://park-ride-[random-string].vercel.app
-   OR
-   https://park-ride-delhi-bikund2017.vercel.app
-   ```
+**Your Vercel app is deployed to:**
+```
+https://park-ride-new1.vercel.app
+```
 
-2. **Set the environment variable exactly as:**
-   ```
-   ALLOWED_ORIGINS=https://your-actual-deployed-url.vercel.app
-   ```
+**Set the environment variable exactly as:**
+```
+ALLOWED_ORIGINS=https://park-ride-new1.vercel.app
+```
+
+### Steps to Configure:
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click on your "Park-Ride-" project
+3. Go to Settings → Environment Variables
+4. Add new variable:
+   - **Name:** `ALLOWED_ORIGINS`
+   - **Value:** `https://park-ride-new1.vercel.app`
+   - **Environment:** Production
+5. Save and redeploy
 
 ### Multiple Origins (if needed):
 ```
