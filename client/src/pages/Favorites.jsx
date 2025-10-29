@@ -222,4 +222,3 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
 
 export default Favorites;
 
-

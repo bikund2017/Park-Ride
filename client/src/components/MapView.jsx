@@ -4,19 +4,16 @@ import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import '../map-fix.css';
 
-// Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: 'https:
+  iconUrl: 'https:
+  shadowUrl: 'https:
 });
 
-// Custom icons for different marker types
-
 const metroIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconUrl: 'https:
+  shadowUrl: 'https:
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -24,8 +21,8 @@ const metroIcon = new L.Icon({
 });
 
 const busIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconUrl: 'https:
+  shadowUrl: 'https:
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -33,16 +30,14 @@ const busIcon = new L.Icon({
 });
 
 const trainIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconUrl: 'https:
+  shadowUrl: 'https:
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 
-// Create custom warning icon with SVG data URI
-// Category-based report icons
 const getReportIcon = (category) => {
   const colors = {
     parking: '#e74c3c',
@@ -74,7 +69,7 @@ const getReportIcon = (category) => {
 };
 
 const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) => {
-  // Delhi center coordinates (New Delhi, India Gate area)
+  
   const delhiCenter = [28.6139, 77.2090];
   
   const MapClickHandler = () => {
@@ -93,8 +88,8 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
     
     if (occupancyRate > 0.8) {
       return new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconUrl: 'https:
+        shadowUrl: 'https:
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -102,8 +97,8 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
       });
     } else if (occupancyRate > 0.5) {
       return new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconUrl: 'https:
+        shadowUrl: 'https:
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -111,8 +106,8 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
       });
     } else {
       return new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconUrl: 'https:
+        shadowUrl: 'https:
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -127,7 +122,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
       zoom={11}
       style={{ height: '100%', width: '100%' }}
       whenCreated={(map) => {
-        // Force map to invalidate size after creation and window resize
+        
         setTimeout(() => {
           map.invalidateSize();
           window.addEventListener('resize', () => map.invalidateSize());
@@ -135,15 +130,15 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
       }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https:
+        url="https:
         maxZoom={19}
         minZoom={3}
       />
       
       <MapClickHandler />
       
-      {/* Render parking lots */}
+      {}
       {parkingData.map((lot) => (
         <Marker 
           key={`parking-${lot.id}`} 
@@ -160,7 +155,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
         </Marker>
       ))}
       
-      {/* Render transit vehicles and routes */}
+      {}
       {transitData.map((vehicle) => {
         let vehicleIcon = metroIcon;
         let routeColor = '#3498db';
@@ -177,7 +172,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
         
         return (
           <React.Fragment key={`transit-${vehicle.id}`}>
-            {/* Render route path */}
+            {}
             <Polyline 
               positions={vehicle.routePath} 
               color={routeColor} 
@@ -185,7 +180,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
               opacity={0.5}
             />
             
-            {/* Render vehicle marker */}
+            {}
             <Marker 
               position={vehicle.location}
               icon={vehicleIcon}
@@ -238,7 +233,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
         );
       })}
       
-      {/* Render user reports with clustering */}
+      {}
       <MarkerClusterGroup>
         {reports.map((report) => {
           const category = report.category || 'general';

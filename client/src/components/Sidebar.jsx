@@ -20,17 +20,14 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
     { id: 'bus', label: '🚌 Bus', emoji: '🚌' },
     { id: 'train', label: '🚂 Train', emoji: '🚂' }
   ];
-  
-  // Filter reports based on category and search query
+
   useEffect(() => {
     let filtered = reports;
-    
-    // Filter by category
+
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(report => report.category === categoryFilter);
     }
-    
-    // Filter by search query
+
     if (searchQuery) {
       filtered = filtered.filter(report => 
         report.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -40,7 +37,6 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
     setFilteredReports(filtered);
   }, [reports, categoryFilter, searchQuery]);
 
-  // Refresh reports every 10 seconds when on reports tab
   useEffect(() => {
     if (activeTab === 'reports' && onRefreshReports) {
       const interval = setInterval(onRefreshReports, 10000);
@@ -48,7 +44,6 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
     }
   }, [activeTab, onRefreshReports]);
 
-  // Fetch favorites once when favorites tab becomes active; further refresh handled by global rate limit
   useEffect(() => {
     if (activeTab !== 'favorites') return;
     if (onRefreshFavorites) {
@@ -58,7 +53,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
 
   return (
     <div className="sidebar-modern">
-      {/* Tab Navigation */}
+      {}
       <div className="sidebar-tabs">
         {tabs.map(tab => (
           <button
@@ -72,7 +67,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
         ))}
       </div>
 
-      {/* Tab Content */}
+      {}
       <div className="sidebar-content">
         {activeTab === 'report' && (
           <ReportForm 

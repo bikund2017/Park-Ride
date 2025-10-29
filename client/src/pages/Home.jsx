@@ -10,4 +10,3 @@ function Home({ children }) {
 
 export default Home;
 
-

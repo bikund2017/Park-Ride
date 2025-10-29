@@ -1,9 +1,9 @@
 export default function handler(req, res) {
-  // Enable CORS
+  
   const origin = req.headers.origin;
   const allowedOrigins = process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',') 
-    : ['http://localhost:3000'];
+    : ['http:
   
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);

@@ -33,4 +33,3 @@ function Reports({ reports, onUpvote, onRefreshReports, isLoadingReports }) {
 
 export default Reports;
 
-

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-// Socket.IO imported conditionally to avoid errors on Vercel
-// REMOVED: import axios from 'axios'; - axios causes blank screen on Vercel
+
 import { useAuth } from './contexts/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Login from './pages/Login.jsx';
@@ -34,7 +33,6 @@ function App() {
   const [favorites, setFavorites] = useState([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
 
-  // Fetch reports function
   const fetchReports = async () => {
     try {
       setIsLoadingReports(true);
@@ -48,12 +46,11 @@ function App() {
     }
   };
 
-  // Handle upvote function
   const handleUpvote = async (reportId) => {
     try {
       const response = await fetch(`/api/reports/${reportId}/upvote`, { method: 'POST' });
       const data = await response.json();
-      // Update the specific report's upvote count in state
+      
       setReports(prevReports => 
         prevReports.map(report => 
           report.id === reportId 
@@ -67,7 +64,6 @@ function App() {
     }
   };
 
-  // Fetch favorites: only show blocking loader if we have no cached data
   const favoritesFetchInFlight = useRef(false);
   const lastFavoritesFetch = useRef(0);
 
@@ -75,7 +71,7 @@ function App() {
     if (isLoadingFavorites) return;
     const now = Date.now();
     if (favoritesFetchInFlight.current) return;
-    if (now - lastFavoritesFetch.current < 8000) return; // rate limit 8s
+    if (now - lastFavoritesFetch.current < 8000) return; 
     const shouldBlock = favorites.length === 0;
     let safetyTimer;
     try {
@@ -102,7 +98,6 @@ function App() {
     }
   }, [favorites.length, isLoadingFavorites]);
 
-  // Add to favorites function
   const addToFavorites = async (parkingLotId) => {
     try {
       const response = await fetch('/api/favorites', {
@@ -123,7 +118,6 @@ function App() {
     }
   };
 
-  // Remove from favorites function
   const removeFromFavorites = async (parkingLotId) => {
     try {
       await fetch(`/api/favorites/delete?userId=${userId}&parkingLotId=${parkingLotId}`, {
@@ -137,7 +131,7 @@ function App() {
   };
 
   useEffect(() => {
-    // Function to fetch data via HTTP
+    
     const fetchDataViaHttp = async () => {
       try {
         const response = await fetch('/api/transit-data');
@@ -156,17 +150,13 @@ function App() {
       }
     };
 
-    // Always use HTTP polling (works on both Vercel and localhost)
     console.log('Using HTTP polling for data updates');
     setIsConnected(true);
-    
-    // Initial fetch
+
     fetchDataViaHttp();
-    
-    // Poll every 10 seconds
+
     const pollingInterval = setInterval(fetchDataViaHttp, 10000);
 
-    // Fetch reports on component mount
     fetchReports();
 
     return () => {
@@ -188,7 +178,6 @@ function App() {
   const busCount = transitData.filter(v => v.vehicleType === 'bus').length;
   const trainCount = transitData.filter(v => v.vehicleType === 'train').length;
 
-  // Add error logging
   useEffect(() => {
     console.log('App mounted successfully');
     console.log('Environment:', window.location.hostname);
@@ -198,11 +187,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
+        {}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
-        {/* Protected routes */}
+        {}
         <Route path="/*" element={
           <ProtectedRoute>
             <div className="app-modern">

@@ -1,7 +1,5 @@
 import { db } from '../firebase.js';
 import { faker } from '@faker-js/faker';
-
-// Helper function to generate parking lot data (same as transit-data.js)
 function getParkingLotById(lotId) {
   const delhiLocations = [
     { name: 'Connaught Place', coords: [28.6315, 77.2167] },
@@ -17,15 +15,11 @@ function getParkingLotById(lotId) {
     { name: 'Noida City Centre', coords: [28.5744, 77.3564] },
     { name: 'Faridabad', coords: [28.4089, 77.3178] }
   ];
-
   if (lotId < 0 || lotId >= delhiLocations.length) {
     return null;
   }
-
   const location = delhiLocations[lotId];
-  // Use consistent seed for same ID
   faker.seed(lotId + 1000);
-
   return {
     id: lotId,
     name: `${location.name} Park & Ride`,
@@ -37,43 +31,33 @@ function getParkingLotById(lotId) {
     availableSpots: faker.number.int({ min: 10, max: 100 })
   };
 }
-
 export default async function handler(req, res) {
-  // Enable CORS
   const origin = req.headers.origin;
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['http://localhost:3000'];
-
+    : ['http:
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
   if (req.method === 'POST') {
     try {
       const { parkingLotId, userId = 'anonymous', parkingLot } = req.body;
-
       if (parkingLotId === undefined || parkingLotId === null || parkingLotId === '') {
         return res.status(400).json({ message: 'Parking lot ID is required' });
       }
-
-      // If parkingLot data is not provided, fetch it
       let parkingLotData = parkingLot || {};
-
       if (!parkingLot || Object.keys(parkingLot).length === 0) {
         const foundLot = getParkingLotById(Number(parkingLotId));
         if (foundLot) {
           parkingLotData = foundLot;
         }
       }
-
       const favorite = {
         id: `${userId}-${parkingLotId}`,
         userId,
@@ -81,9 +65,7 @@ export default async function handler(req, res) {
         parkingLot: parkingLotData,
         createdAt: new Date()
       };
-
       await db.collection('favorites').doc(favorite.id).set(favorite);
-
       res.status(200).json({ message: 'Added to favorites', favorite });
     } catch (error) {
       console.error('Error adding favorite:', error);
@@ -92,22 +74,17 @@ export default async function handler(req, res) {
   } else if (req.method === 'GET') {
     try {
       const { userId } = req.query;
-
       if (!userId) {
         return res.status(400).json({ message: 'User ID is required' });
       }
-
       const favoritesSnapshot = await db.collection('favorites')
         .where('userId', '==', userId)
         .get();
-
       const favorites = [];
       favoritesSnapshot.forEach(doc => {
         favorites.push(doc.data());
       });
-
       favorites.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
       res.status(200).json({ favorites });
     } catch (error) {
       console.error('Error fetching favorites:', error);

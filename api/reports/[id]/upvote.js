@@ -1,7 +1,7 @@
 import { db } from '../../../firebase.js';
 
 export default async function handler(req, res) {
-  // Set CORS headers
+  
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Report ID is required' });
     }
 
-    // Get the report
     const reportRef = db.collection('reports').doc(id);
     const reportDoc = await reportRef.get();
 
@@ -33,7 +32,6 @@ export default async function handler(req, res) {
     const currentUpvotes = reportData.upvotes || 0;
     const newUpvotes = currentUpvotes + 1;
 
-    // Update the upvote count
     await reportRef.update({
       upvotes: newUpvotes,
       lastUpvoted: new Date().toISOString()
