@@ -12,9 +12,6 @@
     "dev:client": "cd client && npm run dev",
     "dev:full": "concurrently \"npm run dev:watch\" \"npm run dev:client\"",
     "build": "cd client && npm run build",
-    "build:client": "cd client && npm run build",
-    "build:vercel": "cd client && npm ci && npm run build",
-    "vercel-build": "cd client && npm ci && npm run build",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ignore-path .gitignore --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
