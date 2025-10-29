@@ -8,13 +8,20 @@ try {
   if (admin.apps.length === 0) {
     // Use environment variables (required for Vercel)
     if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-      // Handle both escaped and non-escaped newlines in private key
+      // Handle various formats of private key
       let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-      // If the key doesn't contain actual newlines, replace \n with newlines
-      if (!privateKey.includes('\n') && privateKey.includes('\\n')) {
-        privateKey = privateKey.replace(/\\n/g, '\n');
+
+      // Remove surrounding quotes if they exist
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        privateKey = privateKey.slice(1, -1);
       }
-      
+      if (privateKey.startsWith('\'') && privateKey.endsWith('\'')) {
+        privateKey = privateKey.slice(1, -1);
+      }
+
+      // Replace escaped newlines with actual newlines
+      privateKey = privateKey.replace(/\\n/g, '\n');
+
       admin.initializeApp({
         credential: admin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
