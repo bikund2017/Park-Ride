@@ -4,6 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Vercel local development (renamed to avoid routing conflicts)
+_vercel.json
+
 # Firebase & Secrets (CRITICAL - Never commit these!)
 serviceAccountKey.json
 serviceAccountKey.json.template

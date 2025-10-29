@@ -74,7 +74,7 @@ function App() {
         setIsLoadingFavorites(true);
         safetyTimer = setTimeout(() => setIsLoadingFavorites(false), 5000);
       }
-      const response = await axios.get('/api/favorites/anonymous');
+      const response = await axios.get('/api/favorites?userId=anonymous');
       setFavorites(response.data.favorites || []);
     } catch (error) {
       console.error('Error fetching favorites:', error);
@@ -109,7 +109,7 @@ function App() {
   // Remove from favorites function
   const removeFromFavorites = async (parkingLotId) => {
     try {
-      await axios.delete(`/api/favorites/anonymous/${parkingLotId}`);
+      await axios.delete(`/api/favorites/delete?userId=anonymous&parkingLotId=${parkingLotId}`);
       setFavorites(prev => prev.filter(fav => fav.parkingLotId !== parkingLotId));
     } catch (error) {
       console.error('Error removing from favorites:', error);
