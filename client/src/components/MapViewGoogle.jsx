@@ -163,52 +163,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
           />
         )}
 
-        {/* Only show markers when no route is being displayed */}
-        {!directionsResponse && (
-          <>
-            {/* Parking Lot Markers */}
-        {parkingData.map((lot) => (
-          <Marker
-            key={`parking-${lot.id}`}
-            position={{ lat: lot.location[0], lng: lot.location[1] }}
-            icon={getParkingMarkerIcon(lot)}
-            onClick={() => setSelectedMarker({ type: 'parking', data: lot })}
-          />
-        ))}
-
-        {/* Transit Vehicle Markers and Routes */}
-        {transitData.map((vehicle) => {
-          const routeColor = vehicle.vehicleType === 'metro' 
-            ? vehicle.lineColor || '#3b82f6'
-            : vehicle.vehicleType === 'bus' 
-            ? '#f59e0b' 
-            : '#8b5cf6';
-
-          return (
-            <React.Fragment key={`transit-${vehicle.id}`}>
-              {/* Route Path */}
-              {vehicle.routePath && (
-                <Polyline
-                  path={vehicle.routePath.map(coord => ({ lat: coord[0], lng: coord[1] }))}
-                  options={{
-                    strokeColor: routeColor,
-                    strokeOpacity: 0.6,
-                    strokeWeight: 3,
-                  }}
-                />
-              )}
-
-              {/* Vehicle Marker */}
-              <Marker
-                position={{ lat: vehicle.location[0], lng: vehicle.location[1] }}
-                icon={getTransitIcon(vehicle)}
-                onClick={() => setSelectedMarker({ type: 'transit', data: vehicle })}
-              />
-            </React.Fragment>
-          );
-        })}
-
-        {/* Report Markers with Clustering */}
+        {/* Report Markers - Only show user-submitted reports */}
         <MarkerClusterer>
           {(clusterer) =>
             reports.map((report) => (
@@ -223,76 +178,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
           }
         </MarkerClusterer>
 
-        {/* InfoWindow for Selected Marker */}
-        {selectedMarker && selectedMarker.type === 'parking' && (
-          <InfoWindow
-            position={{ 
-              lat: selectedMarker.data.location[0], 
-              lng: selectedMarker.data.location[1] 
-            }}
-            onCloseClick={() => setSelectedMarker(null)}
-          >
-            <div style={{ padding: '10px', minWidth: '200px' }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#047857' }}>
-                {selectedMarker.data.name}
-              </h4>
-              <p style={{ margin: '5px 0' }}>
-                <strong>Available:</strong> {selectedMarker.data.availableSpots} / {selectedMarker.data.capacity}
-              </p>
-              <p style={{ margin: '5px 0' }}>
-                <strong>Occupancy:</strong>{' '}
-                {Math.round((1 - selectedMarker.data.availableSpots / selectedMarker.data.capacity) * 100)}%
-              </p>
-            </div>
-          </InfoWindow>
-        )}
-
-        {selectedMarker && selectedMarker.type === 'transit' && (
-          <InfoWindow
-            position={{ 
-              lat: selectedMarker.data.location[0], 
-              lng: selectedMarker.data.location[1] 
-            }}
-            onCloseClick={() => setSelectedMarker(null)}
-          >
-            <div style={{ padding: '10px', minWidth: '250px' }}>
-              <h4 style={{ margin: '0 0 10px 0' }}>
-                {selectedMarker.data.vehicleType === 'metro' ? '🚇' : 
-                 selectedMarker.data.vehicleType === 'bus' ? '🚌' : '🚂'}{' '}
-                {selectedMarker.data.routeName}
-              </h4>
-              <p><strong>Type:</strong> {selectedMarker.data.vehicleType.toUpperCase()}</p>
-              <p><strong>Vehicle ID:</strong> {selectedMarker.data.id}</p>
-              <p><strong>Status:</strong> {selectedMarker.data.status}</p>
-              <p><strong>Speed:</strong> {selectedMarker.data.speed} km/h</p>
-
-              {selectedMarker.data.vehicleType === 'metro' && (
-                <>
-                  <p><strong>Next Station:</strong> {selectedMarker.data.nextStation}</p>
-                  <p><strong>ETA:</strong> {selectedMarker.data.estimatedArrival}</p>
-                  <p><strong>Crowd Level:</strong> {selectedMarker.data.crowdLevel}</p>
-                </>
-              )}
-
-              {selectedMarker.data.vehicleType === 'bus' && (
-                <>
-                  <p><strong>Next Stop:</strong> {selectedMarker.data.nextStop}</p>
-                  <p><strong>ETA:</strong> {selectedMarker.data.estimatedArrival}</p>
-                  <p><strong>AC:</strong> {selectedMarker.data.acAvailable ? 'Yes' : 'No'}</p>
-                </>
-              )}
-
-              {selectedMarker.data.vehicleType === 'train' && (
-                <>
-                  <p><strong>Platform:</strong> {selectedMarker.data.platform}</p>
-                  <p><strong>Scheduled:</strong> {selectedMarker.data.scheduledTime}</p>
-                  <p><strong>Delay:</strong> {selectedMarker.data.delay > 0 ? `${selectedMarker.data.delay} min` : 'On Time'}</p>
-                </>
-              )}
-            </div>
-          </InfoWindow>
-        )}
-
+        {/* InfoWindow for Report Markers */}
         {selectedMarker && selectedMarker.type === 'report' && (
           <InfoWindow
             position={{ 
@@ -347,8 +233,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
               </div>
             </div>
           </InfoWindow>
-        )}
-          </>
         )}
       </GoogleMap>
   );
