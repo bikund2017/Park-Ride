@@ -5,6 +5,12 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [map, setMap] = useState(null);
 
+  // Get Google Maps API key
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP_API;
+
+  // Debug: Log API key (only first few characters for security)
+  console.log('Google Maps API Key loaded:', GOOGLE_MAPS_API_KEY ? `${GOOGLE_MAPS_API_KEY.substring(0, 10)}...` : 'NOT FOUND');
+
   // Delhi center coordinates
   const delhiCenter = { lat: 28.6139, lng: 77.2090 };
 
@@ -95,8 +101,31 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     };
   };
 
+  // Show error if no API key
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100%', 
+        background: '#f3f4f6',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <h2 style={{ color: '#ef4444' }}>❌ Google Maps API Key Not Found</h2>
+          <p>Please add <code>VITE_GOOGLE_MAP_API</code> to your <code>client/.env</code> file</p>
+          <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+            Restart the dev server after adding the API key.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAP_API}>
+    <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={delhiCenter}
