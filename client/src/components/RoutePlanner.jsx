@@ -72,6 +72,11 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalcu
     setRoutes([]);
     setSelectedRoute(null);
     setNavigationSteps([]);
+    
+    // Clear route on map when starting new calculation
+    if (onRouteCalculated) {
+      onRouteCalculated(null);
+    }
 
     try {
       const request = {

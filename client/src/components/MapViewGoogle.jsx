@@ -16,9 +16,15 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   // Update directions when selectedRoute changes
   useEffect(() => {
     if (selectedRoute && isLoaded) {
-      setDirectionsResponse(selectedRoute);
-      // Clear selected marker when route is shown
-      setSelectedMarker(null);
+      // Validate that selectedRoute has the required structure for DirectionsRenderer
+      if (selectedRoute.routes && Array.isArray(selectedRoute.routes) && selectedRoute.routes.length > 0) {
+        setDirectionsResponse(selectedRoute);
+        // Clear selected marker when route is shown
+        setSelectedMarker(null);
+      } else {
+        console.error('Invalid route data received:', selectedRoute);
+        setDirectionsResponse(null);
+      }
     } else {
       setDirectionsResponse(null);
     }
