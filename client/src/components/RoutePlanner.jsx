@@ -380,38 +380,6 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalcu
             </div>
           )}
 
-          {selectedRoute && navigationSteps.length > 0 && (
-            <div className="navigation-details">
-              <h4>🧭 Turn-by-Turn Navigation</h4>
-              <div className="navigation-steps">
-                {navigationSteps.map((step, index) => (
-                  <div key={step.id} className="nav-step">
-                    <div className="step-number">{index + 1}</div>
-                    <div className="step-content">
-                      <div className="step-instruction">
-                        {getTravelModeIcon(step.travelMode)} {step.instruction}
-                      </div>
-                      <div className="step-details">
-                        <span>{step.distance}</span>
-                        <span>•</span>
-                        <span>{step.duration}</span>
-                        {step.transitDetails && (
-                          <>
-                            <span>•</span>
-                            <span className="transit-info">
-                              {step.transitDetails.line?.name || 'Transit'} 
-                              {step.transitDetails.line?.short_name && ` (${step.transitDetails.line.short_name})`}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {selectedRoute && (
             <div className="selected-route">
               <h4>✓ Selected Route Summary</h4>
