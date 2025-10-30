@@ -6,7 +6,8 @@ import { useAuth } from './contexts/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
-import MapView from './components/MapView.jsx';
+import MapViewGoogle from './components/MapViewGoogle.jsx'; // Google Maps
+// import MapView from './components/MapView.jsx'; // Leaflet (old)
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import Navbar from './components/Navbar.jsx';
@@ -225,7 +226,7 @@ function App() {
                   element={(
                     <Home>
                       <div className="map-wrapper">
-                        <MapView 
+                        <MapViewGoogle 
                           parkingData={parkingData} 
                           transitData={transitData}
                           onMapClick={handleMapClick}
