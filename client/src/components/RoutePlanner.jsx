@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useJsApiLoader } from '@react-google-maps/api';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import './RoutePlanner.css';
 
-const libraries = ['places', 'directions'];
-
-const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalculated }) => {
+const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalculated, isLoaded }) => {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
@@ -19,14 +16,6 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalcu
       const raw = localStorage.getItem('route_recent');
       return raw ? JSON.parse(raw) : [];
     } catch (_) { return []; }
-  });
-
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP_API;
-
-  // Load Google Maps API
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: libraries,
   });
 
   // Initialize DirectionsService when Google Maps is loaded

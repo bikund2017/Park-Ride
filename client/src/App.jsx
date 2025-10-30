@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useJsApiLoader } from '@react-google-maps/api';
 // Socket.IO imported conditionally to avoid errors on Vercel
 // REMOVED: import axios from 'axios'; - axios causes blank screen on Vercel
 import { useAuth } from './contexts/AuthContext.jsx';
@@ -19,10 +20,20 @@ import NotFound from './pages/NotFound.jsx';
 import './index.css';
 import './map-fix.css';
 
+// Load Google Maps libraries once at app level
+const libraries = ['marker', 'places', 'directions'];
+
 function App() {
   const { currentUser } = useAuth();
   const userId = currentUser?.uid || 'anonymous';
   const userName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User';
+  
+  // Load Google Maps API once for entire app
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP_API;
+  const { isLoaded: isGoogleMapsLoaded } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+  });
   
   const [parkingData, setParkingData] = useState([]);
   const [transitData, setTransitData] = useState([]);
@@ -234,6 +245,7 @@ function App() {
                           reports={reports}
                           onUpvote={handleUpvote}
                           selectedRoute={selectedRoute}
+                          isLoaded={isGoogleMapsLoaded}
                         />
                       </div>
                       <Sidebar 
@@ -255,6 +267,7 @@ function App() {
                         onRefreshFavorites={fetchFavorites}
                         isLoadingFavorites={isLoadingFavorites}
                         onRouteCalculated={setSelectedRoute}
+                        isGoogleMapsLoaded={isGoogleMapsLoaded}
                       />
                     </Home>
                   )}
