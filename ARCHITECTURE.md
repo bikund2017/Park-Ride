@@ -98,7 +98,7 @@ client/
 - **State Management:** React Context API for authentication
 - **Routing:** React Router v6 with protected routes
 - **Data Fetching:** Native Fetch API with HTTP polling
-- **Map Integration:** Dual support (Google Maps & Leaflet)
+- **Map Integration:** Google Maps
 - **Build Tool:** Vite for fast development & optimized builds
 
 ### 2. Backend Architecture
@@ -432,31 +432,7 @@ api/
 - **No Rate Limiting:** API endpoints are open (relies on Vercel limits)
 - **Manual Parking Locations:** 12 hardcoded locations
 
-### Future Scalability Path
-```
-Phase 1: Current (MVP)
-├── Simulated transit data
-├── 12 parking locations
-├── HTTP polling
-└── Serverless functions
 
-Phase 2: Real-time Integration
-├── Connect to Delhi Transit APIs
-├── Redis caching layer
-├── WebSocket for real-time updates
-└── Rate limiting middleware
-
-Phase 3: Advanced Features
-├── Predictive analytics
-├── Machine learning for parking availability
-├── Mobile app (React Native)
-└── Multi-city support
-
-Phase 4: Enterprise Scale
-├── Microservices architecture
-├── Kubernetes deployment
-├── GraphQL API layer
-└── Real-time streaming (Apache Kafka)
 ```
 
 ## 🔧 Technology Stack Summary

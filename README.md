@@ -14,7 +14,7 @@ Park & Ride+ provides real-time parking availability and transit tracking for De
 
 ## ✨ Features
 
-### 🗺️ Dual Map Support
+### 🗺️ Map Support
 - **Google Maps** (Primary) - Interactive maps using Google Maps JavaScript API
 - **Real-time Vehicle Tracking** - Live positions of 10 metro lines, 5 bus routes, 4 train routes
   - *Note: Currently simulated - will track live when transit APIs are integrated*
@@ -66,7 +66,7 @@ Park & Ride+ provides real-time parking availability and transit tracking for De
 - Noida City Centre
 - Faridabad
 
-*Note: Currently using manually defined locations - will display real parking locations when parking APIs are integrated*
+*Note: Currently using hardcoded locations - will display real parking locations when parking APIs are integrated*
 
 ## 🏗️ Technology Stack
 
