@@ -53,6 +53,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   const onLoad = useCallback((map) => {
     setMap(map);
     setHasInitialized(true);
+    console.log('Google Map loaded successfully');
   }, []);
 
   const handleMapClick = (event) => {
@@ -126,7 +127,8 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   };
 
   // Show loading if Google Maps not loaded yet
-  if (!isLoaded) {
+  if (!isLoaded || !window.google) {
+    console.log('Waiting for Google Maps to load...', { isLoaded, hasWindow: !!window.google });
     return (
       <div style={{ 
         display: 'flex', 
