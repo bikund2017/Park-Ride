@@ -139,9 +139,17 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalcu
               }
             });
 
+            // Create a DirectionsResult object for this specific route
+            // DirectionsRenderer expects a DirectionsResult with routes array
+            const directionsResult = {
+              routes: [route],
+              request: result.request,
+              status: result.status
+            };
+
             return {
               id: `route-${index}`,
-              googleRoute: route,
+              googleRoute: directionsResult, // Store full DirectionsResult, not just the route
               parkingLot: nearestParking || {
                 name: 'No parking data',
                 address: 'Start directly from origin',
