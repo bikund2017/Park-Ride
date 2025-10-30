@@ -21,7 +21,9 @@ import './index.css';
 import './map-fix.css';
 
 // Load Google Maps libraries once at app level
-const libraries = ['marker', 'places', 'directions'];
+// Note: 'marker' is not a valid library name, using only 'places'
+// Directions API doesn't require a library import
+const libraries = ['places'];
 
 function App() {
   const { currentUser } = useAuth();
