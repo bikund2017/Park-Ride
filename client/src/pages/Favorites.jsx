@@ -1,22 +1,33 @@
-import React from 'react';
+import React from "react";
 
-function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoadingFavorites }) {
+function Favorites({
+  favorites,
+  onRemoveFromFavorites,
+  onRefreshFavorites,
+  isLoadingFavorites,
+}) {
   return (
     <div className="container-page">
       <div className="card">
         <div className="card-header">
           <h2>⭐ Favorite Parking Lots</h2>
           <span className="badge">{favorites.length}</span>
-          <button className="btn" onClick={onRefreshFavorites} disabled={isLoadingFavorites}>
-            {isLoadingFavorites ? 'Refreshing…' : '🔄 Refresh'}
+          <button
+            className="btn"
+            onClick={onRefreshFavorites}
+            disabled={isLoadingFavorites}
+          >
+            {isLoadingFavorites ? "Refreshing…" : "🔄 Refresh"}
           </button>
         </div>
         <div className="card-body">
           {favorites.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-              <p style={{ fontSize: '48px', margin: '0' }}>⭐</p>
-              <p style={{ marginTop: '16px' }}>No favorites yet.</p>
-              <p style={{ fontSize: '14px', color: '#999' }}>
+            <div
+              style={{ textAlign: "center", padding: "40px", color: "#666" }}
+            >
+              <p style={{ fontSize: "48px", margin: "0" }}>⭐</p>
+              <p style={{ marginTop: "16px" }}>No favorites yet.</p>
+              <p style={{ fontSize: "14px", color: "#999" }}>
                 Add parking lots to your favorites from the map!
               </p>
             </div>
@@ -43,7 +54,8 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
                   {(fav.userName || fav.userEmail) && (
                     <div className="favorite-user-info">
                       <span className="user-badge">
-                        👤 {fav.userName || fav.userEmail?.split('@')[0] || 'User'}
+                        👤{" "}
+                        {fav.userName || fav.userEmail?.split("@")[0] || "User"}
                       </span>
                     </div>
                   )}
@@ -54,7 +66,8 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
                         <div className="favorite-info">
                           <span className="info-label">📍 Address:</span>
                           <span className="info-value">
-                            {lot.location[0]?.toFixed(4)}, {lot.location[1]?.toFixed(4)}
+                            {lot.location[0]?.toFixed(4)},{" "}
+                            {lot.location[1]?.toFixed(4)}
                           </span>
                         </div>
                       )}
@@ -64,7 +77,9 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
                           <>
                             <div className="stat">
                               <span className="stat-label">Available</span>
-                              <span className="stat-value">{lot.availableSpots}</span>
+                              <span className="stat-value">
+                                {lot.availableSpots}
+                              </span>
                             </div>
                             <div className="stat">
                               <span className="stat-label">Capacity</span>
@@ -79,17 +94,25 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
                       </div>
 
                       {lot.availableSpots !== undefined && lot.capacity && (
-                        <div className="availability-badge" style={{
-                          background: lot.availableSpots > lot.capacity * 0.2 ? '#10b981' : '#ef4444',
-                          color: 'white',
-                          padding: '4px 12px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                          display: 'inline-block',
-                          marginTop: '8px'
-                        }}>
-                          {lot.availableSpots > lot.capacity * 0.2 ? 'AVAILABLE' : 'LIMITED'}
+                        <div
+                          className="availability-badge"
+                          style={{
+                            background:
+                              lot.availableSpots > lot.capacity * 0.2
+                                ? "#10b981"
+                                : "#ef4444",
+                            color: "white",
+                            padding: "4px 12px",
+                            borderRadius: "12px",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            display: "inline-block",
+                            marginTop: "8px",
+                          }}
+                        >
+                          {lot.availableSpots > lot.capacity * 0.2
+                            ? "AVAILABLE"
+                            : "LIMITED"}
                         </div>
                       )}
                     </>
@@ -98,8 +121,10 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
                       <span className="info-label">🕐 Added:</span>
                       <span className="info-value">
                         {fav.createdAt?._seconds
-                          ? new Date(fav.createdAt._seconds * 1000).toLocaleDateString()
-                          : 'Invalid Date'}
+                          ? new Date(
+                              fav.createdAt._seconds * 1000
+                            ).toLocaleDateString()
+                          : "Invalid Date"}
                       </span>
                     </div>
                   )}
@@ -245,5 +270,3 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
 }
 
 export default Favorites;
-
-

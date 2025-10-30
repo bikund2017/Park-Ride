@@ -1,7 +1,6 @@
 import { db } from '../firebase.js';
 import { faker } from '@faker-js/faker';
 
-// Helper function to generate parking lot data (same as transit-data.js)
 function getParkingLotById(lotId) {
   const delhiLocations = [
     { name: 'Connaught Place', coords: [28.6315, 77.2167] },
@@ -23,7 +22,6 @@ function getParkingLotById(lotId) {
   }
 
   const location = delhiLocations[lotId];
-  // Use consistent seed for same ID
   faker.seed(lotId + 1000);
 
   return {
@@ -39,7 +37,7 @@ function getParkingLotById(lotId) {
 }
 
 export default async function handler(req, res) {
-  // Enable CORS
+
   const origin = req.headers.origin;
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
@@ -64,7 +62,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Parking lot ID is required' });
       }
 
-      // If parkingLot data is not provided, fetch it
       let parkingLotData = parkingLot || {};
 
       if (!parkingLot || Object.keys(parkingLot).length === 0) {

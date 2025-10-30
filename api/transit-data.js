@@ -54,7 +54,7 @@ function generateTransitData() {
 
   const transitVehicles = [];
 
-  // Generate Metro vehicles
+
   for (let i = 0; i < 10; i++) {
     const metro = metroLines[i];
     const location = delhiLocations[i];
@@ -85,7 +85,6 @@ function generateTransitData() {
     });
   }
 
-  // Generate Bus vehicles
   for (let i = 0; i < 5; i++) {
     const bus = busRoutes[i];
     const location = delhiLocations[i + 10];
@@ -116,7 +115,6 @@ function generateTransitData() {
     });
   }
 
-  // Generate Train vehicles
   for (let i = 0; i < 4; i++) {
     const train = trainRoutes[i];
     const location = delhiLocations[i + 15];

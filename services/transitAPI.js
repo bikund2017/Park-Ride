@@ -1,3 +1,4 @@
+/* eslint-disable no-trailing-spaces */
 import axios from 'axios';
 import config from '../config.js';
 
@@ -32,14 +33,12 @@ const APIS = {
   }
 };
 
-/**
- * Fetch real-time Delhi Metro data
- */
+// Delhi Metro
 export async function fetchDelhiMetroData() {
   try {
     console.log('🚇 Fetching real Delhi Metro data...');
 
-    // Try Delhi Open Transit Data API
+
     const response = await axios.get(`${APIS.delhiTransit.baseUrl}/metro-positions`, {
       headers: {
         'X-API-Key': APIS.delhiTransit.apiKey,
@@ -79,7 +78,7 @@ export async function fetchDelhiMetroData() {
 }
 
 /**
- * Fetch real-time DTC Bus data
+ * Fetch DTC Bus data
  */
 export async function fetchDTCBusData() {
   try {
@@ -124,14 +123,13 @@ export async function fetchDTCBusData() {
 }
 
 /**
- * Fetch real-time Indian Railways data
+ * Indian Railways data
  */
 export async function fetchIndianRailwaysData() {
   try {
     console.log('🚂 Fetching real Indian Railways data...');
 
-    // Major Delhi railway stations
-    const stations = ['NDLS', 'DLI', 'NZM', 'ANVT']; // New Delhi, Old Delhi, Nizamuddin, Anand Vihar
+    const stations = ['NDLS', 'DLI', 'NZM', 'ANVT'];
     const trainData = [];
 
     for (const stationCode of stations) {
@@ -181,7 +179,7 @@ export async function fetchIndianRailwaysData() {
 }
 
 /**
- * Fetch all real transit data
+ * Fetch all transit data
  */
 export async function fetchAllRealTransitData() {
   console.log('📡 Fetching all real transit data from APIs...');
@@ -206,9 +204,7 @@ export async function fetchAllRealTransitData() {
   return null;
 }
 
-/**
- * Helper: Generate route path from vehicle location
- */
+
 function generateRoutePath(vehicle) {
   const lat = parseFloat(vehicle.latitude || vehicle.lat || 28.6139);
   const lng = parseFloat(vehicle.longitude || vehicle.lng || 77.2090);
@@ -222,23 +218,17 @@ function generateRoutePath(vehicle) {
   return path;
 }
 
-/**
- * Helper: Get station coordinates
- */
 function getStationCoordinates(stationCode) {
   const stations = {
-    'NDLS': [28.6431, 77.2197], // New Delhi
-    'DLI': [28.6642, 77.2295],  // Old Delhi
-    'NZM': [28.5875, 77.2506],  // Nizamuddin
-    'ANVT': [28.6469, 77.3160]  // Anand Vihar
+    'NDLS': [28.6431, 77.2197], 
+    'DLI': [28.6642, 77.2295],  
+    'NZM': [28.5875, 77.2506],  
+    'ANVT': [28.6469, 77.3160]  
   };
 
   return stations[stationCode] || [28.6139, 77.2090];
 }
 
-/**
- * Helper: Generate train route path
- */
 function generateTrainRoutePath(stationCode) {
   const coords = getStationCoordinates(stationCode);
   const path = [];

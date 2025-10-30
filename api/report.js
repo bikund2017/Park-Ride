@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     ? process.env.ALLOWED_ORIGINS.split(',')
     : ['http://localhost:3000', 'http://localhost:5173'];
 
-  // Allow all Vercel deployments
+  // Allow all for vercel ke liye
   if (origin && (allowedOrigins.includes(origin) || origin.includes('vercel.app'))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
@@ -25,7 +25,6 @@ export default async function handler(req, res) {
     try {
       const { location, description, category, imageUrl } = req.body;
 
-      // Log the received data for debugging
       console.log('📥 Received report data:', { location, description, category, imageUrl });
 
       if (!location || !Array.isArray(location) || location.length !== 2) {

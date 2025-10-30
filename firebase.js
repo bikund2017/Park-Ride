@@ -19,7 +19,7 @@ try {
         privateKey = privateKey.slice(1, -1);
       }
 
-      // Replace escaped newlines with actual newlines
+
       privateKey = privateKey.replace(/\\n/g, '\n');
 
       admin.initializeApp({
@@ -43,7 +43,7 @@ try {
   console.error('✗ Firebase initialization failed:', error.message);
   console.log('Note: Using mock database for reports');
 
-  // Create a mock db object to prevent crashes
+
   db = {
     collection: () => ({
       add: async (data) => {

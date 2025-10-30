@@ -145,7 +145,7 @@ code {
   margin: 1rem;
 }
 
-/* Report Form Styles */
+
 .report-form {
   padding: 2rem;
 }
@@ -297,7 +297,6 @@ code {
   }
 }
 
-/* Print Styles */
 @media print {
   .main-container {
     flex-direction: column;

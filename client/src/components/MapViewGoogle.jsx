@@ -17,14 +17,14 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   // Delhi center coordinates (used for initial map position)
   const delhiCenter = { lat: 28.6139, lng: 77.2090 };
 
-  // Update directions when selectedRoute changes
+
   useEffect(() => {
     if (selectedRoute && isLoaded) {
-      // Validate that selectedRoute has the required DirectionsResult structure
+
       if (selectedRoute.routes && Array.isArray(selectedRoute.routes) && selectedRoute.routes.length > 0) {
         console.log('Valid route data received, displaying on map');
         setDirectionsResponse(selectedRoute);
-        // Clear selected marker when route is shown
+
         setSelectedMarker(null);
       } else {
         console.error('Invalid route data received - missing routes array:', selectedRoute);
@@ -45,15 +45,15 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     streetViewControl: true,
     mapTypeControl: true,
     fullscreenControl: true,
-    gestureHandling: 'greedy', // Better handling of mouse/touch gestures
+    gestureHandling: 'greedy',
     disableDefaultUI: false,
-    styles: [], // Can add custom styles here
+    styles: [], 
   };
 
   const onLoad = useCallback((map) => {
     setMap(map);
     hasInitializedRef.current = true;
-    // Set the initial center when map loads
+
     map.setCenter(delhiCenter);
     console.log('Google Map loaded successfully');
   }, []);
@@ -65,7 +65,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     setSelectedMarker(null);
   };
 
-  // Get parking marker color based on occupancy
   const getParkingMarkerIcon = (lot) => {
     const occupancyRate = (lot.capacity - lot.availableSpots) / lot.capacity;
     let color = '#10b981'; // Green
@@ -86,7 +85,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     };
   };
 
-  // Get transit vehicle icon
   const getTransitIcon = (vehicle) => {
     let color = '#3b82f6'; // Blue for metro
 
@@ -128,7 +126,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     };
   };
 
-  // Show loading if Google Maps not loaded yet
   if (!isLoaded || !window.google) {
     console.log('Waiting for Google Maps to load...', { isLoaded, hasWindow: !!window.google });
     return (
@@ -155,7 +152,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
         onLoad={onLoad}
         onClick={handleMapClick}
       >
-        {/* Display route directions if available */}
+        {}
         {directionsResponse && (
           <DirectionsRenderer
             directions={directionsResponse}

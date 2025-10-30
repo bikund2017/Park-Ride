@@ -4,7 +4,6 @@ import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import '../map-fix.css';
 
-// Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -41,8 +40,6 @@ const trainIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-// Create custom warning icon with SVG data URI
-// Category-based report icons
 const getReportIcon = (category) => {
   const colors = {
     parking: '#e74c3c',
@@ -127,7 +124,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
       zoom={11}
       style={{ height: '100%', width: '100%' }}
       whenCreated={(map) => {
-        // Force map to invalidate size after creation and window resize
+
         setTimeout(() => {
           map.invalidateSize();
           window.addEventListener('resize', () => map.invalidateSize());
@@ -160,7 +157,7 @@ const MapView = ({ parkingData, transitData, onMapClick, reports, onUpvote }) =>
         </Marker>
       ))}
       
-      {/* Render transit vehicles and routes */}
+      {}
       {transitData.map((vehicle) => {
         let vehicleIcon = metroIcon;
         let routeColor = '#3498db';

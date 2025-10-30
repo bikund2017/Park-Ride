@@ -1,3 +1,4 @@
+/* eslint-disable no-trailing-spaces */
 import { db } from '../firebase.js';
 
 export default async function handler(req, res) {

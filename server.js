@@ -177,7 +177,7 @@ function generateFallbackTransitData() {
 
   const fallbackData = [];
 
-  // Generate Metro vehicles
+
   for (let i = 0; i < 10; i++) {
     const metro = metroLines[i];
     const location = delhiLocations[i];
