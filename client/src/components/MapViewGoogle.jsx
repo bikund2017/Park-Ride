@@ -46,12 +46,15 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     mapTypeControl: true,
     fullscreenControl: true,
     gestureHandling: 'greedy', // Better handling of mouse/touch gestures
+    disableDefaultUI: false,
     styles: [], // Can add custom styles here
   };
 
   const onLoad = useCallback((map) => {
     setMap(map);
     hasInitializedRef.current = true;
+    // Set the initial center when map loads
+    map.setCenter(delhiCenter);
     console.log('Google Map loaded successfully');
   }, []);
 
@@ -147,7 +150,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   return (
     <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        center={hasInitializedRef.current ? undefined : delhiCenter}
         zoom={11}
         options={mapOptions}
         onLoad={onLoad}
