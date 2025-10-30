@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   GoogleMap, 
   Marker, 
@@ -12,8 +12,10 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [map, setMap] = useState(null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [mapCenter, setMapCenter] = useState({ lat: 28.6139, lng: 77.2090 }); // Delhi center
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const hasInitializedRef = useRef(false);
+  
+  // Delhi center coordinates (used for initial map position)
+  const delhiCenter = { lat: 28.6139, lng: 77.2090 };
 
   // Update directions when selectedRoute changes
   useEffect(() => {
@@ -33,9 +35,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     }
   }, [selectedRoute, isLoaded]);
 
-  // Delhi center coordinates (only used for initial load)
-  const delhiCenter = { lat: 28.6139, lng: 77.2090 };
-
   const mapContainerStyle = {
     width: '100%',
     height: '100%',
@@ -52,7 +51,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
 
   const onLoad = useCallback((map) => {
     setMap(map);
-    setHasInitialized(true);
+    hasInitializedRef.current = true;
     console.log('Google Map loaded successfully');
   }, []);
 
@@ -148,7 +147,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   return (
     <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        center={hasInitialized ? undefined : delhiCenter}
+        center={hasInitializedRef.current ? undefined : delhiCenter}
         zoom={11}
         options={mapOptions}
         onLoad={onLoad}
