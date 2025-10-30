@@ -12,6 +12,8 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [map, setMap] = useState(null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 28.6139, lng: 77.2090 }); // Delhi center
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Update directions when selectedRoute changes
   useEffect(() => {
@@ -31,7 +33,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     }
   }, [selectedRoute, isLoaded]);
 
-  // Delhi center coordinates
+  // Delhi center coordinates (only used for initial load)
   const delhiCenter = { lat: 28.6139, lng: 77.2090 };
 
   const mapContainerStyle = {
@@ -44,11 +46,13 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     streetViewControl: true,
     mapTypeControl: true,
     fullscreenControl: true,
+    gestureHandling: 'greedy', // Better handling of mouse/touch gestures
     styles: [], // Can add custom styles here
   };
 
   const onLoad = useCallback((map) => {
     setMap(map);
+    setHasInitialized(true);
   }, []);
 
   const handleMapClick = (event) => {
@@ -142,7 +146,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   return (
     <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        center={delhiCenter}
+        center={hasInitialized ? undefined : delhiCenter}
         zoom={11}
         options={mapOptions}
         onLoad={onLoad}
