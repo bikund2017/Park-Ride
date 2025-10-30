@@ -1,5 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { GoogleMap, LoadScript, Marker, InfoWindow, Polyline, MarkerClusterer } from '@react-google-maps/api';
+import { 
+  GoogleMap, 
+  useJsApiLoader, 
+  Marker, 
+  InfoWindow, 
+  Polyline, 
+  MarkerClusterer 
+} from '@react-google-maps/api';
+
+const libraries = ['marker']; // Load the marker library for AdvancedMarkerElement
 
 const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote }) => {
   const [selectedMarker, setSelectedMarker] = useState(null);
@@ -7,6 +16,13 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
 
   // Get Google Maps API key
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP_API;
+
+  // Load Google Maps API with useJsApiLoader instead of LoadScript
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+    version: 'weekly' // Use the latest version
+  });
 
   // Debug: Log API key (only first few characters for security)
   console.log('Google Maps API Key loaded:', GOOGLE_MAPS_API_KEY ? `${GOOGLE_MAPS_API_KEY.substring(0, 10)}...` : 'NOT FOUND');
@@ -101,6 +117,44 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     };
   };
 
+  // Show loading state
+  if (!isLoaded) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100%', 
+        background: '#f3f4f6' 
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
+          <p style={{ color: '#666' }}>Loading Google Maps...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if maps failed to load
+  if (loadError) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100%', 
+        background: '#f3f4f6',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <h2 style={{ color: '#ef4444' }}>❌ Error Loading Google Maps</h2>
+          <p>{loadError.message}</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show error if no API key
   if (!GOOGLE_MAPS_API_KEY) {
     return (
@@ -125,8 +179,7 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
   }
 
   return (
-    <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
-      <GoogleMap
+    <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={delhiCenter}
         zoom={11}
@@ -317,7 +370,6 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
           </InfoWindow>
         )}
       </GoogleMap>
-    </LoadScript>
   );
 };
 
