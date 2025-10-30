@@ -84,13 +84,6 @@ cd Park-Ride-
 npm install
 cd client && npm install && cd ..
 
-# Setup Firebase
-# 1. Create project at console.firebase.google.com
-# 2. Enable Firestore + Auth (Email/Password)
-# 3. Download serviceAccountKey.json to project root
-
-# Environment variables
-# Backend: /.env
 NODE_ENV=development
 PORT=5000
 
@@ -113,31 +106,6 @@ cd client && npm run dev # Frontend
 # Backend: http://localhost:5000
 ```
 
-## 🚀 Deploy to Vercel
-
-```bash
-# 1. Push to GitHub
-git push origin master
-
-# 2. Import to Vercel (vercel.com)
-# Framework: Other
-# Build: cd client && npm install && npm run build
-# Output: client/dist
-
-# 3. Add environment variables in Vercel dashboard
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-VITE_GOOGLE_MAP_API=...
-FIREBASE_PROJECT_ID=...
-FIREBASE_PRIVATE_KEY=...
-FIREBASE_CLIENT_EMAIL=...
-
-# 4. Deploy
-```
 
 ## 📁 Project Structure
 
@@ -205,20 +173,6 @@ npm run dev:full    # Run backend + frontend
 - **Parking Colors**: Green (<50%), Orange (50-80%), Red (>80%)
 - **Report Emojis**: 🚗 Parking, 🚦 Traffic, 🏢 Facility, 🚇 Metro, ⚠️ Safety, 📝 General
 
-## 🐛 Troubleshooting
-
-**Google Maps not loading?** Check `VITE_GOOGLE_MAP_API` in `/client/.env`
-**Auth issues?** Verify Firebase config in `/client/src/firebaseConfig.js`
-**Reports not saving?** Check Firestore enabled + `serviceAccountKey.json` exists
-**Data not updating?** Check browser console + `/api/transit-data` endpoint
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE)
-
-## 👨‍💻 Author
-
-**Bikund Kumar** - [@bikund2017](https://github.com/bikund2017)
 
 ---
 
