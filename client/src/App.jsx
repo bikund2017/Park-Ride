@@ -30,10 +30,19 @@ function App() {
   
   // Load Google Maps API once for entire app
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP_API;
-  const { isLoaded: isGoogleMapsLoaded } = useJsApiLoader({
+  
+  // Debug: Log API key status (first 10 chars only for security)
+  console.log('Google Maps API Key loaded:', GOOGLE_MAPS_API_KEY ? `${GOOGLE_MAPS_API_KEY.substring(0, 10)}...` : 'MISSING');
+  
+  const { isLoaded: isGoogleMapsLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
+  
+  // Debug: Log loading status
+  if (loadError) {
+    console.error('Google Maps load error:', loadError);
+  }
   
   const [parkingData, setParkingData] = useState([]);
   const [transitData, setTransitData] = useState([]);
@@ -209,6 +218,50 @@ function App() {
     console.log('Environment:', window.location.hostname);
     console.log('Is Vercel:', window.location.hostname.includes('vercel.app'));
   }, []);
+
+  // Show error if Google Maps API key is missing
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh', 
+        padding: '2rem',
+        textAlign: 'center',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <h1 style={{ color: '#ef4444', marginBottom: '1rem' }}>⚠️ Configuration Error</h1>
+        <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
+          Google Maps API key is not configured.
+        </p>
+        <div style={{ 
+          background: '#fee', 
+          padding: '1rem', 
+          borderRadius: '8px', 
+          maxWidth: '600px',
+          textAlign: 'left',
+          fontSize: '0.9rem'
+        }}>
+          <p><strong>For Vercel deployment:</strong></p>
+          <ol style={{ marginLeft: '1.5rem' }}>
+            <li>Go to your Vercel project settings</li>
+            <li>Navigate to Environment Variables</li>
+            <li>Add: <code style={{ background: '#ddd', padding: '2px 6px', borderRadius: '3px' }}>VITE_GOOGLE_MAP_API</code></li>
+            <li>Set the value to your Google Maps API key</li>
+            <li>Redeploy the application</li>
+          </ol>
+          <p style={{ marginTop: '1rem' }}><strong>For local development:</strong></p>
+          <ol style={{ marginLeft: '1.5rem' }}>
+            <li>Create <code style={{ background: '#ddd', padding: '2px 6px', borderRadius: '3px' }}>client/.env</code> file</li>
+            <li>Add: <code style={{ background: '#ddd', padding: '2px 6px', borderRadius: '3px' }}>VITE_GOOGLE_MAP_API=your_api_key_here</code></li>
+            <li>Restart the dev server</li>
+          </ol>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
