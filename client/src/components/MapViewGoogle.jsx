@@ -1,18 +1,20 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   GoogleMap, 
   useJsApiLoader, 
   Marker, 
   InfoWindow, 
   Polyline, 
-  MarkerClusterer 
+  MarkerClusterer,
+  DirectionsRenderer 
 } from '@react-google-maps/api';
 
-const libraries = ['marker']; // Load the marker library for AdvancedMarkerElement
+const libraries = ['marker', 'places', 'directions']; // Load necessary libraries
 
-const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote }) => {
+const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote, selectedRoute }) => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [map, setMap] = useState(null);
+  const [directionsResponse, setDirectionsResponse] = useState(null);
 
   // Get Google Maps API key
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP_API;
@@ -23,6 +25,17 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
     libraries: libraries,
     version: 'weekly' // Use the latest version
   });
+
+  // Update directions when selectedRoute changes
+  useEffect(() => {
+    if (selectedRoute && isLoaded) {
+      setDirectionsResponse(selectedRoute);
+      // Clear selected marker when route is shown
+      setSelectedMarker(null);
+    } else {
+      setDirectionsResponse(null);
+    }
+  }, [selectedRoute, isLoaded]);
 
   // Debug: Log API key (only first few characters for security)
   console.log('Google Maps API Key loaded:', GOOGLE_MAPS_API_KEY ? `${GOOGLE_MAPS_API_KEY.substring(0, 10)}...` : 'NOT FOUND');
@@ -187,7 +200,25 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
         onLoad={onLoad}
         onClick={handleMapClick}
       >
-        {/* Parking Lot Markers */}
+        {/* Display route directions if available */}
+        {directionsResponse && (
+          <DirectionsRenderer
+            directions={directionsResponse}
+            options={{
+              suppressMarkers: false,
+              polylineOptions: {
+                strokeColor: '#10b981',
+                strokeWeight: 5,
+                strokeOpacity: 0.8,
+              }
+            }}
+          />
+        )}
+
+        {/* Only show markers when no route is being displayed */}
+        {!directionsResponse && (
+          <>
+            {/* Parking Lot Markers */}
         {parkingData.map((lot) => (
           <Marker
             key={`parking-${lot.id}`}
@@ -368,6 +399,8 @@ const MapViewGoogle = ({ parkingData, transitData, onMapClick, reports, onUpvote
               </div>
             </div>
           </InfoWindow>
+        )}
+          </>
         )}
       </GoogleMap>
   );

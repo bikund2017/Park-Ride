@@ -27,6 +27,7 @@ function App() {
   const [parkingData, setParkingData] = useState([]);
   const [transitData, setTransitData] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedRoute, setSelectedRoute] = useState(null); // For route planner
   const [isConnected, setIsConnected] = useState(false);
   const [dataSource, setDataSource] = useState('checking');
   const [reports, setReports] = useState([]);
@@ -232,6 +233,7 @@ function App() {
                           onMapClick={handleMapClick}
                           reports={reports}
                           onUpvote={handleUpvote}
+                          selectedRoute={selectedRoute}
                         />
                       </div>
                       <Sidebar 
@@ -252,6 +254,7 @@ function App() {
                         onRemoveFromFavorites={removeFromFavorites}
                         onRefreshFavorites={fetchFavorites}
                         isLoadingFavorites={isLoadingFavorites}
+                        onRouteCalculated={setSelectedRoute}
                       />
                     </Home>
                   )}

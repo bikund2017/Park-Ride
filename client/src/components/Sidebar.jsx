@@ -4,7 +4,7 @@ import LoadingSpinner from './LoadingSpinner.jsx';
 import RoutePlanner from './RoutePlanner.jsx';
 import './Sidebar.css';
 
-const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, metroCount, busCount, trainCount, reports, onUpvote, onRefreshReports, isLoadingReports, isLoadingData, favorites, onAddToFavorites, onRemoveFromFavorites, onRefreshFavorites, isLoadingFavorites }) => {
+const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, metroCount, busCount, trainCount, reports, onUpvote, onRefreshReports, isLoadingReports, isLoadingData, favorites, onAddToFavorites, onRemoveFromFavorites, onRefreshFavorites, isLoadingFavorites, onRouteCalculated }) => {
   const [activeTab, setActiveTab] = useState('report');
   const [filteredReports, setFilteredReports] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -283,6 +283,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
             parkingData={parkingData}
             transitData={transitData}
             selectedLocation={selectedLocation}
+            onRouteCalculated={onRouteCalculated}
           />
         )}
 
