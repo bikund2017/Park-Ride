@@ -101,8 +101,8 @@ Park & Ride+ provides real-time parking availability and transit tracking for De
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/bikund2017/Park-Ride-.git
-cd Park-Ride-
+git clone https://github.com/bikund2017/Park-Ride.git
+cd Park-Ride
 ```
 
 ### Step 2: Install Dependencies
@@ -115,12 +115,6 @@ cd client
 npm install
 cd ..
 ```
-
-### Step 3: Firebase Setup
-1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable **Firestore Database** (start in test mode for development)
-3. Enable **Authentication** → Email/Password provider
-4. Download service account key and save as `serviceAccountKey.json` in project root
 
 ### Step 4: Environment Variables
 
@@ -240,15 +234,6 @@ npm run dev:full    # Run backend + frontend
 
 ## 🎯 How It Works
 
-### Map System
-- **Map Toggle**: Switch between Google Maps and Leaflet by changing the import in `App.jsx`
-  ```javascript
-  // Google Maps (current default)
-  import MapViewGoogle from './components/MapViewGoogle.jsx';
-  
-  // Or Leaflet
-  import MapView from './components/MapView.jsx';
-  ```
 
 ### Data Flow Architecture
 1. **Client** polls `/api/transit-data` every 10 seconds via HTTP requests
@@ -260,23 +245,12 @@ npm run dev:full    # Run backend + frontend
 **Note:** Application uses HTTP polling (not WebSockets) for compatibility with Vercel serverless deployment.
 
 
-
-
-
-## 🙏 Acknowledgments
-
-- **Firebase** - Authentication and real-time database
-- **Google Maps Platform** - Mapping services and APIs
-- **Leaflet** - Open-source mapping library
-- **Vercel** - Serverless deployment and hosting
-- **Faker.js** - Realistic data simulation
-
 ---
 
 <div align="center">
 
 **Built for Delhi NCR commuters** 🚗🚇
 
-[Live Demo](https://park-ride-new1.vercel.app/) • [Report Issue](https://github.com/bikund2017/Park-Ride-/issues)
+[Live Demo](https://park-ride-new1.vercel.app/) • [Report Issue](https://github.com/bikund2017/Park-Ride/issues)
 
 </div>
