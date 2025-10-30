@@ -112,7 +112,9 @@ function App() {
         },
         body: JSON.stringify({
           parkingLotId: Number(parkingLotId),
-          userId: userId
+          userId: userId,
+          userName: userName,
+          userEmail: currentUser?.email || ''
         })
       });
       const data = await response.json();

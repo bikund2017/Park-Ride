@@ -58,7 +58,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      const { parkingLotId, userId = 'anonymous', parkingLot } = req.body;
+      const { parkingLotId, userId = 'anonymous', parkingLot, userName, userEmail } = req.body;
 
       if (parkingLotId === undefined || parkingLotId === null || parkingLotId === '') {
         return res.status(400).json({ message: 'Parking lot ID is required' });
@@ -77,6 +77,8 @@ export default async function handler(req, res) {
       const favorite = {
         id: `${userId}-${parkingLotId}`,
         userId,
+        userName: userName || 'User',
+        userEmail: userEmail || '',
         parkingLotId: Number(parkingLotId),
         parkingLot: parkingLotData,
         createdAt: new Date()

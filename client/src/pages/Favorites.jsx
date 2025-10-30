@@ -39,6 +39,15 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
                     </button>
                   </div>
 
+                  {/* Display user information */}
+                  {(fav.userName || fav.userEmail) && (
+                    <div className="favorite-user-info">
+                      <span className="user-badge">
+                        👤 {fav.userName || fav.userEmail?.split('@')[0] || 'User'}
+                      </span>
+                    </div>
+                  )}
+
                   {hasData ? (
                     <>
                       {lot.location && (
@@ -135,6 +144,21 @@ function Favorites({ favorites, onRemoveFromFavorites, onRefreshFavorites, isLoa
           font-size: 16px;
           color: #047857;
           flex: 1;
+        }
+
+        .favorite-user-info {
+          margin-bottom: 12px;
+        }
+
+        .user-badge {
+          display: inline-block;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
         }
 
         .btn-remove {
