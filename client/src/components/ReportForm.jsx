@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import './ReportForm.css';
 
-const ReportForm = ({ selectedLocation, onClearLocation }) => {
+const ReportForm = ({ selectedLocation, onClearLocation, onRefreshReports }) => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('general');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,8 +82,18 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
         setIsUploadingImage(false);
       }
 
+      // Convert selectedLocation to array format [lat, lng] if it's an object
+      let locationArray;
+      if (Array.isArray(selectedLocation)) {
+        locationArray = selectedLocation;
+      } else if (selectedLocation.lat !== undefined && selectedLocation.lng !== undefined) {
+        locationArray = [selectedLocation.lat, selectedLocation.lng];
+      } else {
+        locationArray = selectedLocation;
+      }
+
       const reportData = {
-        location: selectedLocation,
+        location: locationArray,
         description: description.trim(),
         category: category,
         imageUrl: imageUrl
@@ -100,6 +110,14 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
       if (response.ok) {
         setSuccessMessage('Report submitted successfully!');
         setDescription('');
+        setSelectedImage(null);
+        setImagePreview(null);
+        
+        // Refresh the reports list to show the new report on the map
+        if (onRefreshReports) {
+          onRefreshReports();
+        }
+        
         if (onClearLocation) {
           setTimeout(() => {
             onClearLocation();
@@ -133,7 +151,12 @@ const ReportForm = ({ selectedLocation, onClearLocation }) => {
             id="location"
             className="location-display"
             value={selectedLocation ? 
-              `${selectedLocation[0].toFixed(4)}, ${selectedLocation[1].toFixed(4)}` : 
+              (Array.isArray(selectedLocation) 
+                ? `${selectedLocation[0].toFixed(4)}, ${selectedLocation[1].toFixed(4)}`
+                : selectedLocation.lat !== undefined && selectedLocation.lng !== undefined
+                  ? `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}`
+                  : 'Invalid location format'
+              ) : 
               'Click on the map to select a location'
             }
             readOnly

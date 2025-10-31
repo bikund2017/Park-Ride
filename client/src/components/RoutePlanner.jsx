@@ -25,11 +25,25 @@ const RoutePlanner = ({ parkingData, transitData, selectedLocation, onRouteCalcu
     }
   }, [isLoaded]);
 
+  // Auto-set destination when parking location or search result is selected
   useEffect(() => {
-    if (selectedLocation && selectedLocation.lat && selectedLocation.lng && !origin) {
-      setOrigin(`${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`);
+    if (selectedLocation) {
+      if (selectedLocation.parkingData) {
+        // Parking location selected
+        const parking = selectedLocation.parkingData;
+        setDestination(`${parking.location[0].toFixed(5)}, ${parking.location[1].toFixed(5)}`);
+      } else if (selectedLocation.lat && selectedLocation.lng) {
+        // Search result or general location selected
+        if (selectedLocation.name) {
+          // Use name if available (more user-friendly)
+          setDestination(selectedLocation.name);
+        } else {
+          // Fall back to coordinates
+          setDestination(`${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`);
+        }
+      }
     }
-  }, [selectedLocation, origin]);
+  }, [selectedLocation]);
 
   const saveRecent = (o, d) => {
     const entry = { o, d, t: Date.now() };

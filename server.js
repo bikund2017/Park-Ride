@@ -298,12 +298,14 @@ async function generateData() {
     parkingLots.push({
       id: i,
       name: `${location.name} Park & Ride`,
+      address: `${location.name}, Delhi NCR`,
       location: [
         location.coords[0] + (Math.random() - 0.5) * 0.01,
         location.coords[1] + (Math.random() - 0.5) * 0.01
       ],
       capacity: faker.number.int({ min: 100, max: 500 }),
-      availableSpots: faker.number.int({ min: 10, max: 100 })
+      availableSpots: faker.number.int({ min: 10, max: 100 }),
+      hourlyRate: faker.number.int({ min: 20, max: 80 })
     });
   }
 
@@ -581,6 +583,22 @@ app.delete('/api/reports/:id', async (req, res) => {
   }
 });
 
+// Add transit-data endpoint for compatibility
+app.get('/api/transit-data', (req, res) => {
+  try {
+    res.json({
+      parkingLots,
+      transitVehicles,
+      timestamp: new Date().toISOString(),
+      dataMode: transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ?
+        '🔴 Simulated (Fallback)' : '🟢 Real-time (Live APIs)'
+    });
+  } catch (error) {
+    logger.error('Error fetching transit data:', error);
+    res.status(500).json({ error: 'Failed to fetch transit data' });
+  }
+});
+
 app.get('/api/transit-info', (req, res) => {
   const metroCount = transitVehicles.filter(v => v.vehicleType === 'metro').length;
   const busCount = transitVehicles.filter(v => v.vehicleType === 'bus').length;
@@ -651,6 +669,41 @@ app.post('/api/favorites', async (req, res) => {
   }
 });
 
+// Get favorites - support both query param and URL param
+app.get('/api/favorites', async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    const favoritesSnapshot = await db.collection('favorites')
+      .where('userId', '==', userId)
+      .get();
+
+    const favorites = [];
+    for (const doc of favoritesSnapshot.docs) {
+      const favoriteData = doc.data();
+      const parkingLot = parkingLots.find(lot => Number(lot.id) === Number(favoriteData.parkingLotId));
+      
+      if (parkingLot) {
+        favorites.push({
+          ...favoriteData,
+          parkingLot: parkingLot
+        });
+      }
+    }
+
+    favorites.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ favorites });
+  } catch (error) {
+    console.error('❌ Error fetching favorites:', error);
+    res.status(500).json({ message: 'Error fetching favorites' });
+  }
+});
+
 app.get('/api/favorites/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -660,9 +713,17 @@ app.get('/api/favorites/:userId', async (req, res) => {
       .get();
 
     const favorites = [];
-    favoritesSnapshot.forEach(doc => {
-      favorites.push(doc.data());
-    });
+    for (const doc of favoritesSnapshot.docs) {
+      const favoriteData = doc.data();
+      const parkingLot = parkingLots.find(lot => Number(lot.id) === Number(favoriteData.parkingLotId));
+      
+      if (parkingLot) {
+        favorites.push({
+          ...favoriteData,
+          parkingLot: parkingLot
+        });
+      }
+    }
 
     favorites.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -670,6 +731,26 @@ app.get('/api/favorites/:userId', async (req, res) => {
   } catch (error) {
     console.error('❌ Error fetching favorites:', error);
     res.status(500).json({ message: 'Error fetching favorites' });
+  }
+});
+
+// Delete favorite - support query param format
+app.delete('/api/favorites/delete', async (req, res) => {
+  try {
+    const { userId, parkingLotId } = req.query;
+    
+    if (!userId || !parkingLotId) {
+      return res.status(400).json({ message: 'userId and parkingLotId are required' });
+    }
+    
+    const favoriteId = `${userId}-${parkingLotId}`;
+
+    await db.collection('favorites').doc(favoriteId).delete();
+
+    res.json({ message: 'Removed from favorites' });
+  } catch (error) {
+    console.error('❌ Error removing favorite:', error);
+    res.status(500).json({ message: 'Error removing from favorites' });
   }
 });
 

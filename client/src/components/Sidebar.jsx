@@ -4,11 +4,25 @@ import LoadingSpinner from './LoadingSpinner.jsx';
 import RoutePlanner from './RoutePlanner.jsx';
 import './Sidebar.css';
 
-const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, metroCount, busCount, trainCount, reports, onUpvote, onRefreshReports, isLoadingReports, isLoadingData, favorites, onAddToFavorites, onRemoveFromFavorites, onRefreshFavorites, isLoadingFavorites, onRouteCalculated, isGoogleMapsLoaded }) => {
+const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, metroCount, busCount, trainCount, reports, onUpvote, onRefreshReports, isLoadingReports, isLoadingData, favorites, onAddToFavorites, onRemoveFromFavorites, onRefreshFavorites, isLoadingFavorites, onRouteCalculated, isGoogleMapsLoaded, selectedParkingId, selectedSearchResult, mapSearchQuery }) => {
   const [activeTab, setActiveTab] = useState('report');
   const [filteredReports, setFilteredReports] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const selectedParking = selectedParkingId 
+    ? parkingData.find(lot => lot.id === selectedParkingId)
+    : null;
+
+  // Auto-switch to parking tab when parking is selected
+  useEffect(() => {
+    if (selectedParkingId) {
+      setActiveTab('parking');
+    } else if (selectedSearchResult && mapSearchQuery && mapSearchQuery.toLowerCase().includes('park')) {
+      // If user searched for parking and clicked a result, switch to parking tab
+      setActiveTab('parking');
+    }
+  }, [selectedParkingId, selectedSearchResult, mapSearchQuery]);
 
   const tabs = [
     { id: 'report', label: '📝 Report', emoji: '📝' },
@@ -75,6 +89,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
           <ReportForm 
             selectedLocation={selectedLocation} 
             onClearLocation={onClearLocation}
+            onRefreshReports={onRefreshReports}
           />
         )}
 
@@ -287,6 +302,75 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
 
         {activeTab === 'parking' && (
           <div className="data-section">
+            {/* Show selected search result if from Google Maps search */}
+            {selectedSearchResult && mapSearchQuery && (
+              <div style={{
+                background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+                color: 'white',
+                padding: '20px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                boxShadow: '0 6px 20px rgba(76, 175, 80, 0.3)',
+                border: '2px solid rgba(255, 255, 255, 0.3)'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  marginBottom: '15px',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  <span style={{ fontSize: '28px', marginRight: '12px' }}>🅿️</span>
+                  <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+                    Selected Parking Location
+                  </h4>
+                </div>
+                <div style={{ fontSize: '14px' }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '12px'
+                  }}>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>
+                      {selectedSearchResult.name}
+                    </p>
+                    <p style={{ margin: '0', fontSize: '13px', opacity: 0.95, lineHeight: '1.5' }}>
+                      📍 {selectedSearchResult.address}
+                    </p>
+                  </div>
+                  
+                  {selectedSearchResult.rating && (
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      marginBottom: '12px',
+                      display: 'inline-block'
+                    }}>
+                      <span style={{ fontSize: '13px' }}>
+                        ⭐ Rating: <strong>{selectedSearchResult.rating}</strong> / 5.0
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div style={{ 
+                    marginTop: '12px',
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    borderLeft: '4px solid rgba(255, 255, 255, 0.6)'
+                  }}>
+                    <p style={{ margin: 0, lineHeight: '1.6' }}>
+                      <strong>ℹ️ Real-time Data:</strong> This is a verified location from Google Maps. 
+                      {mapSearchQuery.toLowerCase().includes('park') && ' Live parking availability will be displayed when Arduino sensors are connected.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="section-header">
               <h3>🅿️ Parking Status</h3>
               <span className="count-badge">{parkingData.length}</span>
@@ -309,7 +393,29 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
                   }
                   
                   return (
-                    <div key={lot.id} className="data-card parking">
+                    <div 
+                      key={lot.id} 
+                      className={`data-card parking ${selectedParkingId === lot.id ? 'selected-parking' : ''}`}
+                      style={selectedParkingId === lot.id ? {
+                        border: '3px solid #667eea',
+                        background: 'linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%)',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                      } : {}}
+                    >
+                      {selectedParkingId === lot.id && (
+                        <div style={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: 'white',
+                          padding: '8px 12px',
+                          marginBottom: '10px',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          textAlign: 'center'
+                        }}>
+                          📍 Currently Selected Parking
+                        </div>
+                      )}
                       <div className="card-header">
                         <h4>{lot.name}</h4>
                         <span className={`status-badge ${statusClass}`}>{statusText}</span>

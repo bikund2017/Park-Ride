@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import MapViewGoogle from "./components/MapViewGoogle.jsx"; // Google Maps
+import ParkingSearch from "./components/ParkingSearch.jsx";
 
 import Header from "./components/Header.jsx";
 import Sidebar from "./components/Sidebar.jsx";
@@ -55,6 +56,13 @@ function App() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  const [selectedParkingId, setSelectedParkingId] = useState(null);
+  const [searchLocation, setSearchLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [showAllParkingMarkers, setShowAllParkingMarkers] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSearchResult, setSelectedSearchResult] = useState(null);
 
   const fetchReports = async () => {
     try {
@@ -204,6 +212,91 @@ function App() {
     setSelectedLocation(null);
   };
 
+  const handleParkingClick = (parkingLot) => {
+    // Set the parking location as destination automatically
+    setSelectedLocation({
+      lat: parkingLot.location[0],
+      lng: parkingLot.location[1],
+      name: parkingLot.name,
+      parkingData: parkingLot
+    });
+    setSelectedParkingId(parkingLot.id);
+  };
+
+  const handleParkingSelect = (parkingLot) => {
+    // When user selects from search
+    setSelectedParkingId(parkingLot.id);
+    setSearchLocation({
+      lat: parkingLot.location[0],
+      lng: parkingLot.location[1],
+      name: parkingLot.name
+    });
+    handleParkingClick(parkingLot);
+  };
+
+  const handleSearchLocationChange = (location) => {
+    setSearchLocation(location);
+  };
+
+  const handleShowSearchResults = (results, query) => {
+    console.log(`Showing ${results.length} results for "${query}"`);
+    setSearchResults(results);
+    setSearchQuery(query);
+    setShowAllParkingMarkers(false); // Hide parking markers when showing search results
+    
+    // Center map on first result if available
+    if (results.length > 0) {
+      setSearchLocation({
+        lat: results[0].location[0],
+        lng: results[0].location[1],
+        name: results[0].name
+      });
+    }
+  };
+
+  const handleSearchResultClick = (searchResult) => {
+    // When user clicks a search result marker, set it as destination
+    setSelectedLocation({
+      lat: searchResult.location[0],
+      lng: searchResult.location[1],
+      name: searchResult.name,
+      address: searchResult.address
+    });
+    
+    // Store the selected search result
+    setSelectedSearchResult(searchResult);
+    
+    // Pan map to this location
+    setSearchLocation({
+      lat: searchResult.location[0],
+      lng: searchResult.location[1],
+      name: searchResult.name
+    });
+  };
+
+  // Get user's current location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setSelectedLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log('Error getting user location:', error);
+          // Default to Delhi center if geolocation fails
+          setUserLocation({ lat: 28.6139, lng: 77.2090 });
+        }
+      );
+    }
+  }, []);
+
   const metroCount = transitData.filter(
     (v) => v.vehicleType === "metro"
   ).length;
@@ -334,7 +427,26 @@ function App() {
                     path="/"
                     element={
                       <Home>
-                        <div className="map-wrapper">
+                        <div className="map-wrapper" style={{ position: 'relative' }}>
+                          <div style={{ 
+                            position: 'absolute', 
+                            top: '20px', 
+                            left: '50%', 
+                            transform: 'translateX(-50%)', 
+                            zIndex: 1000,
+                            width: '90%',
+                            maxWidth: '500px'
+                          }}>
+                            <ParkingSearch
+                              parkingData={parkingData}
+                              isLoaded={isGoogleMapsLoaded}
+                              onParkingSelect={handleParkingSelect}
+                              onSearchLocationChange={handleSearchLocationChange}
+                              onShowAllParking={() => setShowAllParkingMarkers(true)}
+                              onShowSearchResults={handleShowSearchResults}
+                              userLocation={userLocation}
+                            />
+                          </div>
                           <MapViewGoogle
                             parkingData={parkingData}
                             transitData={transitData}
@@ -343,6 +455,14 @@ function App() {
                             onUpvote={handleUpvote}
                             selectedRoute={selectedRoute}
                             isLoaded={isGoogleMapsLoaded}
+                            onParkingClick={handleParkingClick}
+                            selectedParkingId={selectedParkingId}
+                            searchLocation={searchLocation}
+                            userLocation={userLocation}
+                            showAllParkingMarkers={showAllParkingMarkers}
+                            searchResults={searchResults}
+                            searchQuery={searchQuery}
+                            onSearchResultClick={handleSearchResultClick}
                           />
                         </div>
                         <Sidebar
@@ -365,6 +485,9 @@ function App() {
                           isLoadingFavorites={isLoadingFavorites}
                           onRouteCalculated={setSelectedRoute}
                           isGoogleMapsLoaded={isGoogleMapsLoaded}
+                          selectedParkingId={selectedParkingId}
+                          selectedSearchResult={selectedSearchResult}
+                          mapSearchQuery={searchQuery}
                         />
                       </Home>
                     }

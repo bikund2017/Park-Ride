@@ -95,3 +95,6 @@ client/dist/
 ehthumbs.db
 Thumbs.db
 .vercel
+
+
+*.md
