@@ -30,9 +30,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
     { id: 'favorites', label: '⭐ Favorites', emoji: '⭐' },
     { id: 'route', label: '🗺️ Route', emoji: '🗺️' },
     { id: 'parking', label: '🅿️ Parking', emoji: '🅿️' },
-    { id: 'metro', label: '🚇 Metro', emoji: '🚇' },
-    { id: 'bus', label: '🚌 Bus', emoji: '🚌' },
-    { id: 'train', label: '🚂 Train', emoji: '🚂' }
+    { id: 'metro', label: '🚇 Metro', emoji: '🚇' }
   ];
   
   useEffect(() => {
@@ -508,98 +506,6 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
               ) : (
                 <div className="empty-state">
                   <p>No metro data available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'bus' && (
-          <div className="data-section">
-            <div className="section-header">
-              <h3>🚌 DTC Bus</h3>
-              <span className="count-badge">{busCount}</span>
-            </div>
-            <div className="card-list">
-              {isLoadingData ? (
-                <LoadingSpinner text="Loading bus data..." />
-              ) : transitData.filter(v => v.vehicleType === 'bus').length > 0 ? (
-                transitData.filter(v => v.vehicleType === 'bus').map((vehicle) => (
-                  <div key={vehicle.id} className="data-card bus">
-                    <div className="card-header">
-                      <h4>{vehicle.routeName}</h4>
-                      <span className="vehicle-badge bus">{vehicle.acAvailable ? 'AC Bus' : 'Bus'}</span>
-                    </div>
-                    <div className="card-details">
-                      <p><span className="detail-label">🚏 Next Stop:</span> {vehicle.nextStop}</p>
-                      <p><span className="detail-label">⏱️ ETA:</span> {vehicle.estimatedArrival}</p>
-                      <p><span className="detail-label">👥 Crowd:</span> {vehicle.crowdLevel}</p>
-                    </div>
-                    <div className="card-stats">
-                      <div className="stat">
-                        <span className="stat-label">Speed</span>
-                        <span className="stat-value">{vehicle.speed} km/h</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-label">Stops</span>
-                        <span className="stat-value">{vehicle.totalStops}</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-label">Status</span>
-                        <span className="stat-value">{vehicle.status}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-state">
-                  <p>No bus data available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'train' && (
-          <div className="data-section">
-            <div className="section-header">
-              <h3>🚂 Railway</h3>
-              <span className="count-badge">{trainCount}</span>
-            </div>
-            <div className="card-list">
-              {isLoadingData ? (
-                <LoadingSpinner text="Loading train data..." />
-              ) : transitData.filter(v => v.vehicleType === 'train').length > 0 ? (
-                transitData.filter(v => v.vehicleType === 'train').map((vehicle) => (
-                  <div key={vehicle.id} className="data-card train">
-                    <div className="card-header">
-                      <h4>{vehicle.routeName}</h4>
-                      <span className="vehicle-badge train">Train</span>
-                    </div>
-                    <div className="card-details">
-                      <p><span className="detail-label">🚉 Platform:</span> {vehicle.platform}</p>
-                      <p><span className="detail-label">🕐 Scheduled:</span> {vehicle.scheduledTime}</p>
-                      <p><span className="detail-label">⏱️ Delay:</span> {vehicle.delay > 0 ? `${vehicle.delay} min` : 'On Time'}</p>
-                    </div>
-                    <div className="card-stats">
-                      <div className="stat">
-                        <span className="stat-label">Speed</span>
-                        <span className="stat-value">{vehicle.speed} km/h</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-label">Coaches</span>
-                        <span className="stat-value">{vehicle.coaches}</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-label">Status</span>
-                        <span className="stat-value">{vehicle.status}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-state">
-                  <p>No train data available</p>
                 </div>
               )}
             </div>
