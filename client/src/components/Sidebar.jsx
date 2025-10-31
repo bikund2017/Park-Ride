@@ -108,10 +108,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
               >
                 <option value="all">All Categories</option>
                 <option value="parking">🚗 Parking</option>
-                <option value="traffic">🚦 Traffic</option>
-                <option value="facility">🏢 Facility</option>
                 <option value="metro">🚇 Metro</option>
-                <option value="safety">⚠️ Safety</option>
                 <option value="general">📝 General</option>
               </select>
               <input
@@ -146,10 +143,7 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
                 filteredReports.map((report) => {
                   const categoryNames = {
                     parking: '🚗 Parking Issue',
-                    traffic: '🚦 Traffic Condition',
-                    facility: '🏢 Facility Issue',
                     metro: '🚇 Metro/Transit',
-                    safety: '⚠️ Safety Concern',
                     general: '📝 General Report'
                   };
                   

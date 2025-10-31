@@ -187,12 +187,9 @@ const MapViewGoogle = ({
   // Get report marker icon
   const getReportIcon = (category) => {
     const colors = {
-      parking: '#e74c3c',
-      traffic: '#f39c12',
-      facility: '#3498db',
-      metro: '#9b59b6',
-      safety: '#e67e22',
-      general: '#95a5a6'
+      parking: '#e74c3c',    // Red
+      metro: '#9b59b6',       // Purple
+      general: '#95a5a6'      // Gray
     };
 
     return {
@@ -334,10 +331,7 @@ const MapViewGoogle = ({
             <div style={{ padding: '10px', minWidth: '250px' }}>
               <h4 style={{ margin: '0 0 10px 0' }}>
                 {selectedMarker.data.category === 'parking' ? '🚗 Parking Issue' :
-                 selectedMarker.data.category === 'traffic' ? '🚦 Traffic Condition' :
-                 selectedMarker.data.category === 'facility' ? '🏢 Facility Issue' :
                  selectedMarker.data.category === 'metro' ? '🚇 Metro/Transit' :
-                 selectedMarker.data.category === 'safety' ? '⚠️ Safety Concern' :
                  '📝 General Report'}
                 {selectedMarker.data.resolved && <span style={{ color: '#10b981' }}> ✓</span>}
               </h4>

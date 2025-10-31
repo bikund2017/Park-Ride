@@ -13,10 +13,7 @@ const ReportForm = ({ selectedLocation, onClearLocation, onRefreshReports }) => 
   
   const categories = [
     { value: 'parking', label: '🚗 Parking Issue', description: 'Parking unavailability, broken barriers, etc.' },
-    { value: 'traffic', label: '🚦 Traffic Condition', description: 'Heavy traffic, roadblocks, accidents' },
-    { value: 'facility', label: '🏢 Facility Issue', description: 'Broken elevators, water, security' },
     { value: 'metro', label: '🚇 Metro/Transit', description: 'Delays, closures, service issues' },
-    { value: 'safety', label: '⚠️ Safety Concern', description: 'Security, lighting, suspicious activity' },
     { value: 'general', label: '📝 General', description: 'Other issues or information' }
   ];
 
