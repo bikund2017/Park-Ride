@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import './Header.css';
 
-const Header = ({ isConnected, metroCount, busCount, trainCount, parkingCount, dataSource, userName, userEmail }) => {
+const Header = ({ isConnected, metroCount, parkingCount, dataSource, userName, userEmail }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -46,22 +46,6 @@ const Header = ({ isConnected, metroCount, busCount, trainCount, parkingCount, d
           <div className="stat-info">
             <div className="stat-value">{metroCount}</div>
             <div className="stat-label">Metro Lines</div>
-          </div>
-        </div>
-        
-        <div className="stat-item-modern">
-          <div className="stat-emoji">🚌</div>
-          <div className="stat-info">
-            <div className="stat-value">{busCount}</div>
-            <div className="stat-label">DTC Buses</div>
-          </div>
-        </div>
-        
-        <div className="stat-item-modern">
-          <div className="stat-emoji">🚂</div>
-          <div className="stat-info">
-            <div className="stat-value">{trainCount}</div>
-            <div className="stat-label">Trains</div>
           </div>
         </div>
         

@@ -61,7 +61,7 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [showAllParkingMarkers, setShowAllParkingMarkers] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedSearchResult, setSelectedSearchResult] = useState(null);
 
   const fetchReports = async () => {
@@ -218,7 +218,7 @@ function App() {
       lat: parkingLot.location[0],
       lng: parkingLot.location[1],
       name: parkingLot.name,
-      parkingData: parkingLot
+      parkingData: parkingLot,
     });
     setSelectedParkingId(parkingLot.id);
   };
@@ -229,7 +229,7 @@ function App() {
     setSearchLocation({
       lat: parkingLot.location[0],
       lng: parkingLot.location[1],
-      name: parkingLot.name
+      name: parkingLot.name,
     });
     handleParkingClick(parkingLot);
   };
@@ -243,13 +243,13 @@ function App() {
     setSearchResults(results);
     setSearchQuery(query);
     setShowAllParkingMarkers(false); // Hide parking markers when showing search results
-    
+
     // Center map on first result if available
     if (results.length > 0) {
       setSearchLocation({
         lat: results[0].location[0],
         lng: results[0].location[1],
-        name: results[0].name
+        name: results[0].name,
       });
     }
   };
@@ -260,17 +260,17 @@ function App() {
       lat: searchResult.location[0],
       lng: searchResult.location[1],
       name: searchResult.name,
-      address: searchResult.address
+      address: searchResult.address,
     });
-    
+
     // Store the selected search result
     setSelectedSearchResult(searchResult);
-    
+
     // Pan map to this location
     setSearchLocation({
       lat: searchResult.location[0],
       lng: searchResult.location[1],
-      name: searchResult.name
+      name: searchResult.name,
     });
   };
 
@@ -281,17 +281,17 @@ function App() {
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           });
           setSelectedLocation({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           });
         },
         (error) => {
-          console.log('Error getting user location:', error);
+          console.log("Error getting user location:", error);
           // Default to Delhi center if geolocation fails
-          setUserLocation({ lat: 28.6139, lng: 77.2090 });
+          setUserLocation({ lat: 28.6139, lng: 77.209 });
         }
       );
     }
@@ -415,8 +415,6 @@ function App() {
                 <Header
                   isConnected={isConnected}
                   metroCount={metroCount}
-                  busCount={busCount}
-                  trainCount={trainCount}
                   parkingCount={parkingData.length}
                   dataSource={dataSource}
                   userName={userName}
@@ -427,22 +425,31 @@ function App() {
                     path="/"
                     element={
                       <Home>
-                        <div className="map-wrapper" style={{ position: 'relative' }}>
-                          <div style={{ 
-                            position: 'absolute', 
-                            top: '20px', 
-                            left: '50%', 
-                            transform: 'translateX(-50%)', 
-                            zIndex: 1000,
-                            width: '90%',
-                            maxWidth: '500px'
-                          }}>
+                        <div
+                          className="map-wrapper"
+                          style={{ position: "relative" }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "20px",
+                              left: "50%",
+                              transform: "translateX(-50%)",
+                              zIndex: 1000,
+                              width: "90%",
+                              maxWidth: "500px",
+                            }}
+                          >
                             <ParkingSearch
                               parkingData={parkingData}
                               isLoaded={isGoogleMapsLoaded}
                               onParkingSelect={handleParkingSelect}
-                              onSearchLocationChange={handleSearchLocationChange}
-                              onShowAllParking={() => setShowAllParkingMarkers(true)}
+                              onSearchLocationChange={
+                                handleSearchLocationChange
+                              }
+                              onShowAllParking={() =>
+                                setShowAllParkingMarkers(true)
+                              }
                               onShowSearchResults={handleShowSearchResults}
                               userLocation={userLocation}
                             />
