@@ -374,7 +374,7 @@ const MapViewGoogle = ({
         onClick={goToMyLocation}
         style={{
           position: 'absolute',
-          bottom: '120px',
+          bottom: '105px',
           right: '10px',
           width: '40px',
           height: '40px',
