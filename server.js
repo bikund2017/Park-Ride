@@ -123,7 +123,7 @@ async function fetchAllRealTransitData(silent = false) {
 }
 
 function generateFallbackTransitData() {
-  console.log('🔄 Generating comprehensive Delhi Transit data (Metro, Bus, Train)...');
+  console.log('🔄 Generating Delhi Metro data...');
 
   const metroLines = [
     { name: 'Red Line (Rithala - Shaheed Sthal)', color: '#E41E26', stations: 29 },
@@ -138,21 +138,6 @@ function generateFallbackTransitData() {
     { name: 'Aqua Line (Noida Sector 51 - Depot)', color: '#00BFFF', stations: 21 }
   ];
 
-  const busRoutes = [
-    { name: 'DTC 764 (ISBT - Nehru Place)', stops: 45 },
-    { name: 'DTC 534 (Old Delhi - Dwarka)', stops: 38 },
-    { name: 'DTC 423 (Anand Vihar - Vasant Vihar)', stops: 52 },
-    { name: 'Cluster AC (Connaught Place - Gurgaon)', stops: 28 },
-    { name: 'DTC 181 (Kashmere Gate - Saket)', stops: 41 }
-  ];
-
-  const trainRoutes = [
-    { name: 'Rajdhani Express (Delhi - Mumbai)', platform: 2 },
-    { name: 'Shatabdi Express (Delhi - Chandigarh)', platform: 5 },
-    { name: 'Local Train (Delhi - Ghaziabad)', platform: 8 },
-    { name: 'Duronto Express (Delhi - Kolkata)', platform: 3 }
-  ];
-
   const delhiLocations = [
     { name: 'Rajiv Chowk Metro', coords: [28.6328, 77.2197], type: 'metro' },
     { name: 'Kashmere Gate Metro', coords: [28.6676, 77.2285], type: 'metro' },
@@ -163,21 +148,12 @@ function generateFallbackTransitData() {
     { name: 'AIIMS Metro', coords: [28.5672, 77.2100], type: 'metro' },
     { name: 'Botanical Garden Metro', coords: [28.5641, 77.3344], type: 'metro' },
     { name: 'Vaishali Metro', coords: [28.6491, 77.3410], type: 'metro' },
-    { name: 'Huda City Centre Metro', coords: [28.4595, 77.0727], type: 'metro' },
-    { name: 'ISBT Kashmere Gate', coords: [28.6692, 77.2289], type: 'bus' },
-    { name: 'Nehru Place Terminal', coords: [28.5494, 77.2501], type: 'bus' },
-    { name: 'Anand Vihar ISBT', coords: [28.6469, 77.3160], type: 'bus' },
-    { name: 'Dwarka Sector 9', coords: [28.5810, 77.0707], type: 'bus' },
-    { name: 'Saket District Centre', coords: [28.5244, 77.2066], type: 'bus' },
-    { name: 'New Delhi Railway Station', coords: [28.6431, 77.2197], type: 'train' },
-    { name: 'Old Delhi Railway Station', coords: [28.6642, 77.2295], type: 'train' },
-    { name: 'Hazrat Nizamuddin Station', coords: [28.5875, 77.2506], type: 'train' },
-    { name: 'Anand Vihar Terminal', coords: [28.6469, 77.3160], type: 'train' }
+    { name: 'Huda City Centre Metro', coords: [28.4595, 77.0727], type: 'metro' }
   ];
 
   const fallbackData = [];
 
-
+  // Generate Metro vehicles (10 lines)
   for (let i = 0; i < 10; i++) {
     const metro = metroLines[i];
     const location = delhiLocations[i];
@@ -208,68 +184,7 @@ function generateFallbackTransitData() {
     });
   }
 
-
-  for (let i = 0; i < 5; i++) {
-    const bus = busRoutes[i];
-    const location = delhiLocations[i + 10];
-    const routePath = [];
-
-    for (let j = 0; j < 10; j++) {
-      const offset = (j - 5) * 0.015;
-      routePath.push([
-        location.coords[0] + offset + (Math.random() - 0.5) * 0.008,
-        location.coords[1] + offset * 0.7 + (Math.random() - 0.5) * 0.008
-      ]);
-    }
-
-    fallbackData.push({
-      id: `bus-${i + 1}`,
-      routeName: bus.name,
-      location: location.coords,
-      routePath,
-      vehicleType: 'bus',
-      status: ['active', 'at_stop', 'delayed'][Math.floor(Math.random() * 3)],
-      speed: Math.floor(Math.random() * 30) + 15,
-      currentStopIndex: Math.floor(Math.random() * 10),
-      totalStops: bus.stops,
-      nextStop: `Stop ${Math.floor(Math.random() * bus.stops) + 1}`,
-      estimatedArrival: `${Math.floor(Math.random() * 10) + 2} min`,
-      crowdLevel: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)],
-      acAvailable: i % 2 === 0
-    });
-  }
-
- 
-  for (let i = 0; i < 4; i++) {
-    const train = trainRoutes[i];
-    const location = delhiLocations[i + 15];
-    const routePath = [];
-
-    for (let j = 0; j < 8; j++) {
-      const offset = (j - 4) * 0.03;
-      routePath.push([
-        location.coords[0] + offset,
-        location.coords[1] + offset * 0.6
-      ]);
-    }
-
-    fallbackData.push({
-      id: `train-${i + 1}`,
-      routeName: train.name,
-      location: location.coords,
-      routePath,
-      vehicleType: 'train',
-      status: ['scheduled', 'arriving', 'boarding', 'departed'][Math.floor(Math.random() * 4)],
-      speed: Math.floor(Math.random() * 50) + 60,
-      currentStopIndex: 0,
-      platform: train.platform,
-      scheduledTime: `${Math.floor(Math.random() * 12) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} PM`,
-      delay: Math.floor(Math.random() * 30),
-      coaches: Math.floor(Math.random() * 8) + 12
-    });
-  }
-
-  console.log(`✅ Generated ${fallbackData.length} transit vehicles: ${fallbackData.filter(v => v.vehicleType === 'metro').length} Metro, ${fallbackData.filter(v => v.vehicleType === 'bus').length} Bus, ${fallbackData.filter(v => v.vehicleType === 'train').length} Train`);
+  console.log(`✅ Generated ${fallbackData.length} Metro vehicles`);
   return fallbackData;
 }
 
@@ -601,23 +516,17 @@ app.get('/api/transit-data', (req, res) => {
 
 app.get('/api/transit-info', (req, res) => {
   const metroCount = transitVehicles.filter(v => v.vehicleType === 'metro').length;
-  const busCount = transitVehicles.filter(v => v.vehicleType === 'bus').length;
-  const trainCount = transitVehicles.filter(v => v.vehicleType === 'train').length;
 
   res.json({
-    message: 'Delhi Transit Data API Integration',
-    dataSource: 'Real-time Multi-Source Integration',
+    message: 'Delhi Metro Data API Integration',
+    dataSource: 'Real-time Metro Integration',
     apiStatus: {
       delhiOTD: config.delhiTransit.apiKey ? '✓ Configured' : '✗ Missing',
-      dmrc: process.env.DMRC_API_KEY ? '✓ Configured' : '⏳ Pending',
-      dtc: process.env.DTC_API_KEY ? '✓ Configured' : '⏳ Pending',
-      indianRailways: process.env.IRCTC_API_KEY || process.env.RAPIDAPI_KEY ? '✓ Configured' : '⏳ Pending'
+      dmrc: process.env.DMRC_API_KEY ? '✓ Configured' : '⏳ Pending'
     },
     vehicleCounts: {
       total: transitVehicles.length,
-      metro: metroCount,
-      bus: busCount,
-      train: trainCount
+      metro: metroCount
     },
     dataMode: transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ?
       '🔴 Simulated (Fallback)' : '🟢 Real-time (Live APIs)',

@@ -165,13 +165,8 @@ const MapViewGoogle = ({
   };
 
   const getTransitIcon = (vehicle) => {
-    let color = '#3b82f6'; // Blue for metro
-
-    if (vehicle.vehicleType === 'bus') {
-      color = '#f59e0b'; // Orange
-    } else if (vehicle.vehicleType === 'train') {
-      color = '#8b5cf6'; // Purple
-    }
+    // Only Metro - Blue color
+    const color = '#3b82f6';
 
     return {
       path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,

@@ -300,10 +300,6 @@ function App() {
   const metroCount = transitData.filter(
     (v) => v.vehicleType === "metro"
   ).length;
-  const busCount = transitData.filter((v) => v.vehicleType === "bus").length;
-  const trainCount = transitData.filter(
-    (v) => v.vehicleType === "train"
-  ).length;
 
   useEffect(() => {
     console.log("App mounted successfully");
@@ -478,8 +474,6 @@ function App() {
                           selectedLocation={selectedLocation}
                           onClearLocation={handleClearLocation}
                           metroCount={metroCount}
-                          busCount={busCount}
-                          trainCount={trainCount}
                           reports={reports}
                           onUpvote={handleUpvote}
                           onRefreshReports={fetchReports}

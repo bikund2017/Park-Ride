@@ -192,18 +192,9 @@ const MapView = ({
 
       {}
       {transitData.map((vehicle) => {
-        let vehicleIcon = metroIcon;
-        let routeColor = "#3498db";
-
-        if (vehicle.vehicleType === "bus") {
-          vehicleIcon = busIcon;
-          routeColor = "#f39c12";
-        } else if (vehicle.vehicleType === "train") {
-          vehicleIcon = trainIcon;
-          routeColor = "#9b59b6";
-        } else if (vehicle.vehicleType === "metro" && vehicle.lineColor) {
-          routeColor = vehicle.lineColor;
-        }
+        // Only Metro vehicles
+        const vehicleIcon = metroIcon;
+        const routeColor = vehicle.lineColor || "#3498db";
 
         return (
           <React.Fragment key={`transit-${vehicle.id}`}>
@@ -220,15 +211,10 @@ const MapView = ({
               <Popup>
                 <div>
                   <h4 style={{ marginTop: 0, color: routeColor }}>
-                    {vehicle.vehicleType === "metro"
-                      ? "🚇"
-                      : vehicle.vehicleType === "bus"
-                      ? "🚌"
-                      : "🚂"}{" "}
-                    {vehicle.routeName}
+                    🚇 {vehicle.routeName}
                   </h4>
                   <p>
-                    <strong>Type:</strong> {vehicle.vehicleType.toUpperCase()}
+                    <strong>Type:</strong> METRO
                   </p>
                   <p>
                     <strong>Vehicle ID:</strong> {vehicle.id}
@@ -240,61 +226,18 @@ const MapView = ({
                     <strong>Speed:</strong> {vehicle.speed} km/h
                   </p>
 
-                  {vehicle.vehicleType === "metro" && (
-                    <>
-                      <p>
-                        <strong>Next Station:</strong> {vehicle.nextStation}
-                      </p>
-                      <p>
-                        <strong>ETA:</strong> {vehicle.estimatedArrival}
-                      </p>
-                      <p>
-                        <strong>Total Stations:</strong> {vehicle.totalStations}
-                      </p>
-                      <p>
-                        <strong>Crowd Level:</strong> {vehicle.crowdLevel}
-                      </p>
-                    </>
-                  )}
-
-                  {vehicle.vehicleType === "bus" && (
-                    <>
-                      <p>
-                        <strong>Next Stop:</strong> {vehicle.nextStop}
-                      </p>
-                      <p>
-                        <strong>ETA:</strong> {vehicle.estimatedArrival}
-                      </p>
-                      <p>
-                        <strong>Total Stops:</strong> {vehicle.totalStops}
-                      </p>
-                      <p>
-                        <strong>AC Available:</strong>{" "}
-                        {vehicle.acAvailable ? "Yes" : "No"}
-                      </p>
-                      <p>
-                        <strong>Crowd Level:</strong> {vehicle.crowdLevel}
-                      </p>
-                    </>
-                  )}
-
-                  {vehicle.vehicleType === "train" && (
-                    <>
-                      <p>
-                        <strong>Platform:</strong> {vehicle.platform}
-                      </p>
-                      <p>
-                        <strong>Scheduled:</strong> {vehicle.scheduledTime}
-                      </p>
-                      <p>
-                        <strong>Delay:</strong>{" "}
-                        {vehicle.delay > 0 ? `${vehicle.delay} min` : "On Time"}
-                      </p>
-                      <p>
-                        <strong>Coaches:</strong> {vehicle.coaches}
-                      </p>
-                    </>
-                  )}
+                  <p>
+                    <strong>Next Station:</strong> {vehicle.nextStation}
+                  </p>
+                  <p>
+                    <strong>ETA:</strong> {vehicle.estimatedArrival}
+                  </p>
+                  <p>
+                    <strong>Total Stations:</strong> {vehicle.totalStations}
+                  </p>
+                  <p>
+                    <strong>Crowd Level:</strong> {vehicle.crowdLevel}
+                  </p>
 
                   <p
                     style={{
