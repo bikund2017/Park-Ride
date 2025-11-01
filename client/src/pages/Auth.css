@@ -108,7 +108,7 @@
 
 .btn-google:hover:not(:disabled) {
   border-color: #d1d5db;
-  background: #f9fafb;
+  background: #065f46;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
