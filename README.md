@@ -14,12 +14,12 @@ Park & Ride+ is a full-stack web application designed to help Delhi NCR commuter
 
 **Key Features:**
 - 🗺️ Interactive Google Maps with real-time transit tracking
-- 🅿️ 12 parking locations across Delhi NCR with availability status
-- 🚇 10 Metro lines visualization with real-time tracking
+- 🅿️ 12 parking locations across Delhi NCR with availability status (Harcoded)
 - 📝 Community reporting system with image uploads
 - ⭐ User favorites and personalized parking recommendations
 - 🔍 Intelligent parking search with location-based filtering
 - 🔐 Secure Firebase authentication
+- 🚇 10 Metro lines visualization
 
 ## ✨ Core Features
 
@@ -45,6 +45,8 @@ Park & Ride+ is a full-stack web application designed to help Delhi NCR commuter
 11. Noida City Centre Park & Ride
 12. Faridabad Park & Ride
 
+- **Note** all are harcoded data
+
 **Features:**
 - Real-time availability tracking (capacity vs available spots)
 - Hourly rate information
@@ -64,6 +66,8 @@ Park & Ride+ is a full-stack web application designed to help Delhi NCR commuter
 - Orange Line (New Delhi - Dwarka) - 6 stations
 - Rapid Metro (Sikanderpur - Cyber City) - 5 stations
 - Aqua Line (Noida Sector 51 - Depot) - 21 stations
+
+- **Note** all are harcoded data
 
 **Metro Tracking Features:**
 - Live Metro positions on map

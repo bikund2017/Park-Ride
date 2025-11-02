@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React from "react";
+import { NavLink } from "react-router-dom";
 
 function NotFound() {
   return (
@@ -8,7 +8,9 @@ function NotFound() {
         <div className="card-body">
           <h2>Page not found</h2>
           <p>The page you’re looking for doesn’t exist.</p>
-          <NavLink to="/" className="btn">Go Home</NavLink>
+          <NavLink to="/" className="btn">
+            Go Home
+          </NavLink>
         </div>
       </div>
     </div>
@@ -16,5 +18,3 @@ function NotFound() {
 }
 
 export default NotFound;
-
-

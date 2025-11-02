@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 function Reports({ reports, onUpvote, onRefreshReports, isLoadingReports }) {
   return (
@@ -6,8 +6,12 @@ function Reports({ reports, onUpvote, onRefreshReports, isLoadingReports }) {
       <div className="card">
         <div className="card-header">
           <h2>Community Reports</h2>
-          <button className="btn" onClick={onRefreshReports} disabled={isLoadingReports}>
-            {isLoadingReports ? 'Refreshing…' : 'Refresh'}
+          <button
+            className="btn"
+            onClick={onRefreshReports}
+            disabled={isLoadingReports}
+          >
+            {isLoadingReports ? "Refreshing…" : "Refresh"}
           </button>
         </div>
         <div className="card-body">
@@ -17,10 +21,15 @@ function Reports({ reports, onUpvote, onRefreshReports, isLoadingReports }) {
               <li key={r.id} className="list-item">
                 <div>
                   <div className="title">{r.title}</div>
-                  <div className="meta">{r.location} • {r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}</div>
+                  <div className="meta">
+                    {r.location} •{" "}
+                    {r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}
+                  </div>
                 </div>
                 <div className="actions">
-                  <button className="btn" onClick={() => onUpvote(r.id)}>▲ {r.upvotes || 0}</button>
+                  <button className="btn" onClick={() => onUpvote(r.id)}>
+                    ▲ {r.upvotes || 0}
+                  </button>
                 </div>
               </li>
             ))}
@@ -32,5 +41,3 @@ function Reports({ reports, onUpvote, onRefreshReports, isLoadingReports }) {
 }
 
 export default Reports;
-
-

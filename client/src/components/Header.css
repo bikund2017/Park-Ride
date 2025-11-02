@@ -138,7 +138,8 @@
 }
 
 @keyframes pulse-green {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -205,38 +206,38 @@
   .header-modern {
     padding: 1rem;
   }
-  
+
   .header-top {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
     margin-bottom: 1rem;
   }
-  
+
   .header-status-group {
     flex-direction: column;
     width: 100%;
     gap: 0.75rem;
   }
-  
+
   .data-source-badge {
     width: 100%;
     justify-content: center;
   }
-  
+
   .header-title h1 {
     font-size: 1.75rem;
   }
-  
+
   .header-stats {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .stat-emoji {
     font-size: 2rem;
   }
-  
+
   .stat-value {
     font-size: 1.5rem;
   }
@@ -246,7 +247,7 @@
   .header-title h1 {
     font-size: 1.5rem;
   }
-  
+
   .stat-item-modern {
     padding: 0.75rem 1rem;
   }

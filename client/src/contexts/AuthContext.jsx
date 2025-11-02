@@ -1,20 +1,20 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   signInWithPopup,
-  updateProfile
-} from 'firebase/auth';
-import { auth, googleProvider } from '../firebaseConfig';
+  updateProfile,
+} from "firebase/auth";
+import { auth, googleProvider } from "../firebaseConfig";
 
 const AuthContext = createContext({});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -28,7 +28,11 @@ export const AuthProvider = ({ children }) => {
   const signup = async (email, password, displayName) => {
     try {
       setError(null);
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
       // Update Display user ka name
       if (displayName) {
@@ -62,7 +66,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout 
+  // Logout
   const logout = async () => {
     try {
       setError(null);
@@ -89,7 +93,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     signInWithGoogle,
     loading,
-    error
+    error,
   };
 
   return (
