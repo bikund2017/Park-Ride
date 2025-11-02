@@ -694,14 +694,6 @@ app.get('/api/health', async (req, res) => {
       dmrc: {
         configured: !!process.env.DMRC_API_KEY,
         status: process.env.DMRC_API_KEY ? 'ready' : 'pending_key'
-      },
-      dtc: {
-        configured: !!process.env.DTC_API_KEY,
-        status: process.env.DTC_API_KEY ? 'ready' : 'pending_key'
-      },
-      railways: {
-        configured: !!(process.env.IRCTC_API_KEY || process.env.RAPIDAPI_KEY),
-        status: (process.env.IRCTC_API_KEY || process.env.RAPIDAPI_KEY) ? 'ready' : 'pending_key'
       }
     },
     data: {
