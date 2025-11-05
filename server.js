@@ -495,21 +495,31 @@ app.get('/api/transit-data', async (req, res) => {
     let arduinoParkingLots = [];
     try {
       const arduinoSnapshot = await db.collection('arduino-parking').get();
-      arduinoParkingLots = arduinoSnapshot.docs.map(doc => {
+      const parkingMap = new Map(); // Use Map to eliminate duplicates
+
+      arduinoSnapshot.docs.forEach(doc => {
         const data = doc.data();
-        return {
-          id: doc.id,
-          parkingLotId: data.parkingLotId,
-          name: data.name,
-          address: data.address,
-          location: data.location || [28.5744, 77.3564],
-          capacity: data.totalSlots,
-          availableSpots: data.availableSlots,
-          hourlyRate: data.hourlyRate || 30,
-          arduinoConnected: true,
-          lastUpdated: data.lastUpdated
-        };
+        const parkingId = data.parkingLotId || doc.id;
+
+        // Only keep the most recent entry for each parking lot
+        if (!parkingMap.has(parkingId) ||
+            (data.lastUpdated && data.lastUpdated > parkingMap.get(parkingId).lastUpdated)) {
+          parkingMap.set(parkingId, {
+            id: parkingId,
+            parkingLotId: parkingId,
+            name: data.name,
+            address: data.address,
+            location: data.location || [28.5744, 77.3564],
+            capacity: data.totalSlots,
+            availableSpots: data.availableSlots,
+            hourlyRate: data.hourlyRate || 30,
+            arduinoConnected: true,
+            lastUpdated: data.lastUpdated
+          });
+        }
       });
+
+      arduinoParkingLots = Array.from(parkingMap.values());
     } catch (error) {
       console.error('Error fetching Arduino data:', error);
     }

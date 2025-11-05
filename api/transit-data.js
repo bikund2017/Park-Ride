@@ -116,21 +116,31 @@ export default async function handler(req, res) {
       let arduinoParkingLots = [];
       try {
         const arduinoSnapshot = await db.collection('arduino-parking').get();
-        arduinoParkingLots = arduinoSnapshot.docs.map(doc => {
+        const parkingMap = new Map(); // Use Map to eliminate duplicates
+        
+        arduinoSnapshot.docs.forEach(doc => {
           const data = doc.data();
-          return {
-            id: doc.id,
-            parkingLotId: data.parkingLotId,
-            name: data.name,
-            address: data.address,
-            location: data.location || [28.5744, 77.3564], // Default location if not set
-            capacity: data.totalSlots,
-            availableSpots: data.availableSlots,
-            hourlyRate: data.hourlyRate || 30,
-            arduinoConnected: true,
-            lastUpdated: data.lastUpdated
-          };
+          const parkingId = data.parkingLotId || doc.id;
+          
+          // Only keep the most recent entry for each parking lot
+          if (!parkingMap.has(parkingId) ||
+              (data.lastUpdated && data.lastUpdated > parkingMap.get(parkingId).lastUpdated)) {
+            parkingMap.set(parkingId, {
+              id: parkingId,
+              parkingLotId: parkingId,
+              name: data.name,
+              address: data.address,
+              location: data.location || [28.5744, 77.3564],
+              capacity: data.totalSlots,
+              availableSpots: data.availableSlots,
+              hourlyRate: data.hourlyRate || 30,
+              arduinoConnected: true,
+              lastUpdated: data.lastUpdated
+            });
+          }
         });
+        
+        arduinoParkingLots = Array.from(parkingMap.values());
       } catch (error) {
         console.error('Error fetching Arduino data:', error);
       }
@@ -138,7 +148,7 @@ export default async function handler(req, res) {
       // Generate simulated parking data
       const simulatedParkingLots = generateParkingData();
       
-      // Merge Arduino data with simulated data (Arduino data comes first)
+      // Merge Arduino data with simulated data (Arduino data comes first, no duplicates)
       const parkingLots = [...arduinoParkingLots, ...simulatedParkingLots];
       
       const transitVehicles = generateTransitData();
