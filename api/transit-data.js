@@ -68,21 +68,11 @@ function generateTransitData() {
 function generateParkingData() {
   const delhiLocations = [
     { name: 'Connaught Place', coords: [28.6315, 77.2167] },
-    { name: 'India Gate', coords: [28.6129, 77.2295] },
-    { name: 'Red Fort', coords: [28.6562, 77.2410] },
-    { name: 'Chandni Chowk', coords: [28.6506, 77.2303] },
-    { name: 'AIIMS', coords: [28.5672, 77.2100] },
-    { name: 'Hauz Khas', coords: [28.5494, 77.2001] },
-    { name: 'Karol Bagh', coords: [28.6519, 77.1905] },
-    { name: 'Rajouri Garden', coords: [28.6469, 77.1201] },
-    { name: 'Dwarka', coords: [28.5921, 77.0460] },
-    { name: 'Gurgaon Cyber City', coords: [28.4950, 77.0890] },
-    { name: 'Noida City Centre', coords: [28.5744, 77.3564] },
-    { name: 'Faridabad', coords: [28.4089, 77.3178] }
+    { name: 'India Gate', coords: [28.6129, 77.2295] }
   ];
 
   const parkingLots = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 2; i++) {
     const location = delhiLocations[i];
     parkingLots.push({
       id: i,
