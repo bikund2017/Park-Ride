@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { db } from '../firebase.js';
 
 // Mock data generation for Vercel (since we can't run real-time updates)
 function generateTransitData() {
@@ -111,14 +112,42 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const parkingLots = generateParkingData();
+      // Fetch real Arduino parking data from Firebase
+      let arduinoParkingLots = [];
+      try {
+        const arduinoSnapshot = await db.collection('arduino-parking').get();
+        arduinoParkingLots = arduinoSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            parkingLotId: data.parkingLotId,
+            name: data.name,
+            address: data.address,
+            location: data.location || [28.5744, 77.3564], // Default location if not set
+            capacity: data.totalSlots,
+            availableSpots: data.availableSlots,
+            hourlyRate: data.hourlyRate || 30,
+            arduinoConnected: true,
+            lastUpdated: data.lastUpdated
+          };
+        });
+      } catch (error) {
+        console.error('Error fetching Arduino data:', error);
+      }
+
+      // Generate simulated parking data
+      const simulatedParkingLots = generateParkingData();
+      
+      // Merge Arduino data with simulated data (Arduino data comes first)
+      const parkingLots = [...arduinoParkingLots, ...simulatedParkingLots];
+      
       const transitVehicles = generateTransitData();
 
       res.status(200).json({
         parkingLots,
         transitVehicles,
         timestamp: new Date().toISOString(),
-        dataMode: 'simulated'
+        dataMode: arduinoParkingLots.length > 0 ? 'hybrid' : 'simulated'
       });
     } catch (error) {
       console.error('Error generating transit data:', error);

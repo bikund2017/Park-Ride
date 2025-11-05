@@ -65,15 +65,37 @@ export default async function handler(req, res) {
         });
       }
 
+      // Map parking lot IDs to GPS coordinates
+      const locationMapping = {
+        'SAB_Mall_Parking': {
+          coords: [28.567582, 77.322673],
+          name: 'SAB Mall Parking',
+          address: '313 B E, I Block, Pocket E, Sector 27, Noida'
+        },
+        'Noida_City_Centre_Metro_Vehicle_Parking': {
+          coords: [28.5744, 77.3564],
+          name: 'Noida City Centre Metro Vehicle Parking',
+          address: 'Noida City Centre Metro Station, Sector 32, Noida'
+        }
+      };
+
+      const locationData = locationMapping[parkingLotId] || {
+        coords: [28.5744, 77.3564],
+        name: name || parkingLotId,
+        address: address || 'Address not provided'
+      };
+
       // Prepare parking data
       const parkingData = {
         parkingLotId,
-        name: name || parkingLotId,
-        address: address || 'Address not provided',
+        name: locationData.name,
+        address: locationData.address,
+        location: locationData.coords,
         totalSlots: parseInt(totalSlots),
         availableSlots: parseInt(availableSlots),
         occupiedSlots: occupiedSlots !== undefined ? parseInt(occupiedSlots) : (totalSlots - availableSlots),
         occupancyRate: parseFloat(occupancyRate) || ((totalSlots - availableSlots) / totalSlots * 100),
+        hourlyRate: 30,
         lastUpdated: timestamp || admin.firestore.FieldValue.serverTimestamp(),
         arduinoConnected: true
       };
