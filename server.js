@@ -193,22 +193,12 @@ async function generateData() {
 
   const delhiLocations = [
     { name: 'Connaught Place', coords: [28.6315, 77.2167] },
-    { name: 'India Gate', coords: [28.6129, 77.2295] },
-    { name: 'Red Fort', coords: [28.6562, 77.2410] },
-    { name: 'Chandni Chowk', coords: [28.6506, 77.2303] },
-    { name: 'AIIMS', coords: [28.5672, 77.2100] },
-    { name: 'Hauz Khas', coords: [28.5494, 77.2001] },
-    { name: 'Karol Bagh', coords: [28.6519, 77.1905] },
-    { name: 'Rajouri Garden', coords: [28.6469, 77.1201] },
-    { name: 'Dwarka', coords: [28.5921, 77.0460] },
-    { name: 'Gurgaon Cyber City', coords: [28.4950, 77.0890] },
-    { name: 'Noida City Centre', coords: [28.5744, 77.3564] },
-    { name: 'Faridabad', coords: [28.4089, 77.3178] }
+    { name: 'India Gate', coords: [28.6129, 77.2295] }
   ];
 
 
   parkingLots = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 2; i++) {
     const location = delhiLocations[i];
     parkingLots.push({
       id: i,
@@ -674,6 +664,204 @@ app.delete('/api/favorites/:userId/:parkingLotId', async (req, res) => {
   } catch (error) {
     console.error('❌ Error removing favorite:', error);
     res.status(500).json({ message: 'Error removing from favorites' });
+  }
+});
+
+// Arduino Parking Data Endpoint - Allow CORS from any origin (for local bridge)
+app.options('/api/arduino/parking', cors());
+app.post('/api/arduino/parking', cors(), async (req, res) => {
+  try {
+    const {
+      parkingLotId,
+      name,
+      address,
+      totalSlots,
+      availableSlots,
+      occupiedSlots,
+      occupancyRate,
+      timestamp
+    } = req.body;
+
+    // Validate required fields
+    if (!parkingLotId || totalSlots === undefined || availableSlots === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: parkingLotId, totalSlots, availableSlots'
+      });
+    }
+
+    // Validate data types
+    if (typeof totalSlots !== 'number' || typeof availableSlots !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: 'totalSlots and availableSlots must be numbers'
+      });
+    }
+
+    // Validate ranges
+    if (availableSlots < 0 || availableSlots > totalSlots) {
+      return res.status(400).json({
+        success: false,
+        message: 'availableSlots must be between 0 and totalSlots'
+      });
+    }
+
+    // Create parking data object
+    const parkingData = {
+      parkingLotId,
+      name: name || parkingLotId,
+      address: address || 'Arduino Sensor Location',
+      totalSlots,
+      availableSlots,
+      occupiedSlots: occupiedSlots || (totalSlots - availableSlots),
+      occupancyRate: occupancyRate || ((totalSlots - availableSlots) / totalSlots * 100),
+      lastUpdate: admin.firestore.FieldValue.serverTimestamp(),
+      arduinoTimestamp: timestamp || Date.now(),
+      status: availableSlots > 0 ? 'available' : 'full',
+      source: 'arduino'
+    };
+
+    // Store in Firebase Firestore
+    await db.collection('arduino-parking').doc(parkingLotId).set(parkingData, { merge: true });
+
+    // Find and update the parking lot in real-time data
+    let parkingLot = parkingLots.find(lot =>
+      lot.id === parkingLotId ||
+      lot.name.toLowerCase().includes(parkingLotId.toLowerCase()) ||
+      (name && lot.name.toLowerCase().includes(name.toLowerCase()))
+    );
+
+    if (parkingLot) {
+      // Update existing parking lot
+      parkingLot.capacity = totalSlots;
+      parkingLot.availableSpots = availableSlots;
+      parkingLot.arduinoConnected = true;
+      parkingLot.lastArduinoUpdate = new Date();
+      if (name) parkingLot.name = name;
+      if (address) parkingLot.address = address;
+    } else {
+      // Create new parking lot for this Arduino sensor
+      // Try to determine location from parkingLotId or name
+      let locationCoords = [28.6139, 77.2090]; // Default Delhi center
+      
+      // Map known parking locations
+      const knownLocations = {
+        'SAB_MALL_PARKING': [28.570517, 77.325146], // SAB Mall, Noida
+        'Noida_City_Centre': [28.5744, 77.3564], // Noida City Centre Metro
+        'Noida_City_Centre_Metro_Vehicle_Parking': [28.5744, 77.3564] // Noida City Centre Metro
+      };
+      
+      // Check if this Arduino location is known
+      for (const [key, coords] of Object.entries(knownLocations)) {
+        if (parkingLotId.includes(key) || (name && name.toLowerCase().includes(key.toLowerCase().replace(/_/g, ' ')))) {
+          locationCoords = coords;
+          break;
+        }
+      }
+      
+      parkingLot = {
+        id: parkingLotId,
+        name: name || parkingLotId.replace(/_/g, ' '),
+        address: address || 'Arduino Sensor Location',
+        location: locationCoords,
+        capacity: totalSlots,
+        availableSpots: availableSlots,
+        hourlyRate: 30,
+        arduinoConnected: true,
+        lastArduinoUpdate: new Date()
+      };
+      parkingLots.push(parkingLot);
+    }
+
+    // Emit update to all connected clients via WebSocket
+    io.emit('arduino-update', {
+      parkingLotId,
+      capacity: totalSlots,
+      availableSpots: availableSlots
+    });
+
+    console.log(`✅ Arduino data received for ${parkingLotId}:`, {
+      totalSlots,
+      availableSlots,
+      occupiedSlots: parkingData.occupiedSlots,
+      occupancyRate: parkingData.occupancyRate.toFixed(1) + '%'
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Parking data received successfully',
+      data: parkingData
+    });
+
+  } catch (error) {
+    console.error('❌ Error processing Arduino data:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error processing parking data',
+      error: error.message
+    });
+  }
+});
+
+// Get Arduino parking data
+app.get('/api/arduino/parking', async (req, res) => {
+  try {
+    const { parkingLotId } = req.query;
+
+    // Get specific parking lot
+    if (parkingLotId) {
+      const doc = await db.collection('arduino-parking').doc(parkingLotId).get();
+
+      if (!doc.exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parking lot not found'
+        });
+      }
+
+      const data = doc.data();
+      return res.status(200).json({
+        success: true,
+        data: {
+          ...data,
+          lastUpdate: data.lastUpdate?.toDate?.() || data.lastUpdate
+        }
+      });
+    }
+
+    // Get all Arduino parking data
+    const snapshot = await db.collection('arduino-parking').get();
+    const arduinoParkingLots = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      arduinoParkingLots.push({
+        id: doc.id,
+        ...data,
+        lastUpdate: data.lastUpdate?.toDate?.() || data.lastUpdate
+      });
+    });
+
+    // Sort by last update (most recent first)
+    arduinoParkingLots.sort((a, b) => {
+      const timeA = a.lastUpdate ? new Date(a.lastUpdate).getTime() : 0;
+      const timeB = b.lastUpdate ? new Date(b.lastUpdate).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: arduinoParkingLots.length,
+      data: arduinoParkingLots
+    });
+
+  } catch (error) {
+    console.error('❌ Error retrieving Arduino data:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error retrieving parking data',
+      error: error.message
+    });
   }
 });
 
