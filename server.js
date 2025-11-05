@@ -489,14 +489,43 @@ app.delete('/api/reports/:id', async (req, res) => {
 });
 
 // Add transit-data endpoint for compatibility
-app.get('/api/transit-data', (req, res) => {
+app.get('/api/transit-data', async (req, res) => {
   try {
+    // Fetch real Arduino parking data from Firebase
+    let arduinoParkingLots = [];
+    try {
+      const arduinoSnapshot = await db.collection('arduino-parking').get();
+      arduinoParkingLots = arduinoSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          parkingLotId: data.parkingLotId,
+          name: data.name,
+          address: data.address,
+          location: data.location || [28.5744, 77.3564],
+          capacity: data.totalSlots,
+          availableSpots: data.availableSlots,
+          hourlyRate: data.hourlyRate || 30,
+          arduinoConnected: true,
+          lastUpdated: data.lastUpdated
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching Arduino data:', error);
+    }
+
+    // Merge Arduino data with in-memory parking lots (Arduino data comes first)
+    const allParkingLots = [...arduinoParkingLots, ...parkingLots];
+
     res.json({
-      parkingLots,
+      parkingLots: allParkingLots,
       transitVehicles,
       timestamp: new Date().toISOString(),
-      dataMode: transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ?
-        '🔴 Simulated (Fallback)' : '🟢 Real-time (Live APIs)'
+      dataMode: arduinoParkingLots.length > 0 
+        ? (transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ?
+          '� Hybrid (Arduino + Simulated)' : '🟢 Real-time (Live APIs)')
+        : (transitVehicles.some(v => v.id.startsWith('metro-') && v.totalStations > 0) ?
+          '�🔴 Simulated (Fallback)' : '🟢 Real-time (Live APIs)')
     });
   } catch (error) {
     logger.error('Error fetching transit data:', error);
