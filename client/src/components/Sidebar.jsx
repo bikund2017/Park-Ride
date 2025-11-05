@@ -14,6 +14,28 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
     ? parkingData.find(lot => lot.id === selectedParkingId)
     : null;
 
+  // Get real-time Arduino data for the selected parking
+  const getUpdatedParkingData = () => {
+    if (!selectedSearchResult) return null;
+    
+    // Find Arduino-connected parking for real-time data
+    const arduinoParking = parkingData.find(p => p.arduinoConnected);
+    
+    if (!arduinoParking) return selectedSearchResult;
+    
+    // Merge selected parking info with real-time Arduino data
+    return {
+      ...selectedSearchResult,
+      availableSpots: arduinoParking.availableSpots,
+      capacity: arduinoParking.capacity,
+      hourlyRate: arduinoParking.hourlyRate,
+      occupancyRate: Math.round((1 - arduinoParking.availableSpots / arduinoParking.capacity) * 100),
+      arduinoConnected: true
+    };
+  };
+
+  const updatedSelectedParking = getUpdatedParkingData();
+
   // Auto-switch to parking tab when parking is selected
   useEffect(() => {
     if (selectedParkingId) {
@@ -295,14 +317,14 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
         {activeTab === 'parking' && (
           <div className="data-section">
             {/* Show selected search result if from Google Maps search */}
-            {selectedSearchResult && mapSearchQuery && (
+            {updatedSelectedParking && mapSearchQuery && (
               <div style={{
-                background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+                background: 'linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(69, 160, 73) 100%)',
                 color: 'white',
                 padding: '20px',
                 borderRadius: '12px',
                 marginBottom: '20px',
-                boxShadow: '0 6px 20px rgba(76, 175, 80, 0.3)',
+                boxShadow: 'rgba(76, 175, 80, 0.3) 0px 6px 20px',
                 border: '2px solid rgba(255, 255, 255, 0.3)'
               }}>
                 <div style={{ 
@@ -325,14 +347,14 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
                     marginBottom: '12px'
                   }}>
                     <p style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>
-                      {selectedSearchResult.name}
+                      {updatedSelectedParking.name}
                     </p>
                     <p style={{ margin: '0', fontSize: '13px', opacity: 0.95, lineHeight: '1.5' }}>
-                      📍 {selectedSearchResult.address}
+                      📍 {updatedSelectedParking.address}
                     </p>
                   </div>
                   
-                  {selectedSearchResult.rating && (
+                  {updatedSelectedParking.rating && (
                     <div style={{
                       background: 'rgba(255, 255, 255, 0.15)',
                       padding: '8px 12px',
@@ -341,7 +363,58 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
                       display: 'inline-block'
                     }}>
                       <span style={{ fontSize: '13px' }}>
-                        ⭐ Rating: <strong>{selectedSearchResult.rating}</strong> / 5.0
+                        ⭐ Rating: <strong>{updatedSelectedParking.rating}</strong> / 5.0
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Arduino Data for Parking */}
+                  {updatedSelectedParking.type === 'parking' && updatedSelectedParking.capacity && (
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginBottom: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontWeight: 'bold' }}>🚗 Available Spots:</span>
+                        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                          {updatedSelectedParking.availableSpots} / {updatedSelectedParking.capacity}
+                        </span>
+                      </div>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.3)',
+                        borderRadius: '4px',
+                        height: '8px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          background: updatedSelectedParking.availableSpots > (updatedSelectedParking.capacity * 0.5)
+                            ? '#4caf50'
+                            : updatedSelectedParking.availableSpots > (updatedSelectedParking.capacity * 0.2)
+                            ? '#ff9800'
+                            : '#f44336',
+                          width: `${(updatedSelectedParking.availableSpots / updatedSelectedParking.capacity) * 100}%`,
+                          height: '100%',
+                          transition: 'width 0.3s ease'
+                        }}></div>
+                      </div>
+                      <p style={{ margin: '8px 0 0', fontSize: '12px', opacity: 0.9 }}>
+                        Occupancy: {updatedSelectedParking.occupancyRate}%
+                      </p>
+                    </div>
+                  )}
+                  
+                  {updatedSelectedParking.hourlyRate && (
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      marginBottom: '12px',
+                      display: 'inline-block'
+                    }}>
+                      <span style={{ fontSize: '13px' }}>
+                        💰 Rate: <strong>₹{updatedSelectedParking.hourlyRate}/hour</strong>
                       </span>
                     </div>
                   )}
@@ -355,8 +428,10 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
                     borderLeft: '4px solid rgba(255, 255, 255, 0.6)'
                   }}>
                     <p style={{ margin: 0, lineHeight: '1.6' }}>
-                      <strong>ℹ️ Real-time Data:</strong> This is a verified location from Google Maps. 
-                      {mapSearchQuery.toLowerCase().includes('park') && ' Live parking availability will be displayed when Arduino sensors are connected.'}
+                      <strong>ℹ️ Data Source:</strong> 
+                      {updatedSelectedParking.arduinoConnected
+                        ? ' Real-time parking availability is being updated from Arduino sensors.'
+                        : ' Real-time availability data will be displayed when Arduino sensors are connected.'}
                     </p>
                   </div>
                 </div>
@@ -371,7 +446,14 @@ const Sidebar = ({ parkingData, transitData, selectedLocation, onClearLocation, 
               {isLoadingData ? (
                 <LoadingSpinner text="Loading parking data..." />
               ) : parkingData.length > 0 ? (
-                parkingData.map((lot) => {
+                parkingData
+                  .sort((a, b) => {
+                    // Arduino-connected parking appears first
+                    if (a.arduinoConnected && !b.arduinoConnected) return -1;
+                    if (!a.arduinoConnected && b.arduinoConnected) return 1;
+                    return 0;
+                  })
+                  .map((lot) => {
                   const occupancyRate = (lot.capacity - lot.availableSpots) / lot.capacity;
                   let statusClass = 'available';
                   let statusText = 'Available';

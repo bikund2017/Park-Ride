@@ -221,6 +221,30 @@ function App() {
       parkingData: parkingLot,
     });
     setSelectedParkingId(parkingLot.id);
+    
+    // Always use Arduino data if available (from any Arduino sensor in the system)
+    const arduinoParking = parkingData.find(p => p.arduinoConnected);
+    
+    console.log('Using Arduino data:', arduinoParking ? 'Yes' : 'No');
+    
+    // Show parking data in sidebar - use clicked parking's name/address/rating + Arduino availability data
+    setSelectedSearchResult({
+      name: parkingLot.name,
+      address: parkingLot.address,
+      rating: parkingLot.rating || (3.5 + Math.random() * 1).toFixed(1),
+      availableSpots: arduinoParking ? arduinoParking.availableSpots : parkingLot.availableSpots,
+      capacity: arduinoParking ? arduinoParking.capacity : parkingLot.capacity,
+      hourlyRate: arduinoParking ? arduinoParking.hourlyRate : parkingLot.hourlyRate,
+      occupancyRate: arduinoParking 
+        ? Math.round((1 - arduinoParking.availableSpots / arduinoParking.capacity) * 100)
+        : parkingLot.capacity 
+          ? Math.round((1 - parkingLot.availableSpots / parkingLot.capacity) * 100)
+          : null,
+      arduinoConnected: arduinoParking ? true : parkingLot.arduinoConnected,
+      isGoogleParking: parkingLot.isGoogleParking,
+      type: 'parking'
+    });
+    setSearchQuery('parking');
   };
 
   const handleParkingSelect = (parkingLot) => {
@@ -236,6 +260,35 @@ function App() {
 
   const handleSearchLocationChange = (location) => {
     setSearchLocation(location);
+  };
+
+  // Calculate distance between two points in km using Haversine formula
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const handleShowAllParking = () => {
+    console.log('🅿️ Showing nearby parking locations');
+    setShowAllParkingMarkers(true);
+    setSearchResults([]);
+    setSearchQuery('parking');
+    
+    // If we have user location, center map on it
+    if (userLocation) {
+      setSearchLocation({
+        lat: userLocation.lat,
+        lng: userLocation.lng,
+        name: 'Your Location'
+      });
+    }
   };
 
   const handleShowSearchResults = (results, query) => {
@@ -443,9 +496,7 @@ function App() {
                               onSearchLocationChange={
                                 handleSearchLocationChange
                               }
-                              onShowAllParking={() =>
-                                setShowAllParkingMarkers(true)
-                              }
+                              onShowAllParking={handleShowAllParking}
                               onShowSearchResults={handleShowSearchResults}
                               userLocation={userLocation}
                             />

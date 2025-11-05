@@ -124,12 +124,93 @@ const ParkingSearch = ({
 
   // Search Google Places and show all results on map
   const handleGooglePlacesSearch = (query) => {
-    if (!placesService.current || !userLocation) {
-      alert('Unable to search. Please allow location access.');
+    setShowSuggestions(false);
+
+    // Check if user is searching for parking - use Google Places to find real parking
+    if (query.toLowerCase().includes('parking')) {
+      console.log(`🅿️ Searching for real parking locations near you using Google Places`);
+      
+      if (!isLoaded || !window.google || !window.google.maps) {
+        console.error('Google Maps not loaded yet');
+        alert('Map is still loading. Please wait a moment and try again.');
+        return;
+      }
+
+      if (!placesService.current) {
+        console.error('Places service not initialized');
+        alert('Search service not ready. Please try again.');
+        return;
+      }
+
+      if (!userLocation) {
+        console.error('User location not available');
+        alert('Unable to search for parking. Please allow location access.');
+        return;
+      }
+
+      // Use Google Places Nearby Search to find parking lots
+      const request = {
+        location: new window.google.maps.LatLng(userLocation.lat, userLocation.lng),
+        radius: 5000, // 5km radius
+        type: 'parking', // Search specifically for parking
+        keyword: 'parking'
+      };
+
+      placesService.current.nearbySearch(request, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+          console.log(`Found ${results.length} parking locations via Google Places`);
+          
+          // Convert results to parking format
+          const parkingResults = results.map((place, index) => ({
+            id: `google-parking-${place.place_id}`,
+            name: place.name,
+            address: place.vicinity || place.formatted_address || 'Address not available',
+            location: [place.geometry.location.lat(), place.geometry.location.lng()],
+            type: 'google-parking',
+            placeId: place.place_id,
+            rating: place.rating || 0,
+            isOpen: place.opening_hours ? place.opening_hours.open_now : null,
+            types: place.types
+          }));
+
+          // Show database parking + Google Places parking combined
+          if (onShowAllParking) {
+            onShowAllParking(true);
+          }
+          
+          // Also show Google Places results
+          if (onShowSearchResults) {
+            onShowSearchResults(parkingResults, 'parking');
+          }
+        } else {
+          console.error('Parking search failed:', status);
+          // Fallback to showing database parking only
+          if (onShowAllParking) {
+            onShowAllParking(true);
+          }
+        }
+      });
+      
       return;
     }
 
-    setShowSuggestions(false);
+    if (!isLoaded || !window.google || !window.google.maps) {
+      console.error('Google Maps not loaded yet');
+      alert('Map is still loading. Please wait a moment and try again.');
+      return;
+    }
+
+    if (!placesService.current) {
+      console.error('Places service not initialized');
+      alert('Search service not ready. Please try again.');
+      return;
+    }
+
+    if (!userLocation) {
+      console.error('User location not available');
+      alert('Unable to search. Please allow location access or wait for location to load.');
+      return;
+    }
 
     // Use Google Places Nearby Search or Text Search
     const request = {
@@ -166,25 +247,28 @@ const ParkingSearch = ({
   };
 
   const handleKeyDown = (e) => {
-    if (!showSuggestions || suggestions.length === 0) return;
-
     switch (e.key) {
       case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
-        );
+        if (showSuggestions && suggestions.length > 0) {
+          e.preventDefault();
+          setSelectedIndex(prev => 
+            prev < suggestions.length - 1 ? prev + 1 : prev
+          );
+        }
         break;
       case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        if (showSuggestions && suggestions.length > 0) {
+          e.preventDefault();
+          setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        }
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+        if (showSuggestions && selectedIndex >= 0 && suggestions[selectedIndex]) {
+          // User selected a suggestion from the dropdown
           handleSuggestionClick(suggestions[selectedIndex]);
         } else if (searchQuery.trim().length > 2) {
-          // Search Google Places for the query (like "parking", "restaurant", etc.)
+          // User pressed Enter without selecting a suggestion - perform search
           handleGooglePlacesSearch(searchQuery.trim());
         }
         break;

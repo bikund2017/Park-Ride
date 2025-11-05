@@ -34,6 +34,38 @@ const MapViewGoogle = ({
   // Delhi center coordinates (used for initial map position)
   const delhiCenter = { lat: 28.6139, lng: 77.2090 };
 
+  // Calculate distance between two points in km using Haversine formula
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Filter parking data based on proximity to user location (within 10km)
+  const getNearbyParking = () => {
+    if (!userLocation || !showAllParkingMarkers) {
+      return parkingData.filter(lot => lot.id === selectedParkingId);
+    }
+
+    // Show parking within 10km of user location
+    const PROXIMITY_RADIUS_KM = 10;
+    return parkingData.filter(lot => {
+      const distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        lot.location[0],
+        lot.location[1]
+      );
+      return distance <= PROXIMITY_RADIUS_KM;
+    });
+  };
+
   // Function to center map on user's location
   const goToMyLocation = () => {
     if (userLocation && map) {
@@ -154,7 +186,21 @@ const MapViewGoogle = ({
 
   // Generic marker icon for Google Places search results
   const getSearchResultIcon = (result) => {
-    // Use red pin for search results (like Google Maps)
+    // Use parking icon for parking search results
+    if (result.type === 'google-parking') {
+      return {
+        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+        fillColor: '#4285F4',
+        fillOpacity: 1,
+        strokeColor: '#FFFFFF',
+        strokeWeight: 2,
+        scale: 1.8,
+        anchor: new window.google.maps.Point(12, 22),
+        labelOrigin: new window.google.maps.Point(12, 9),
+      };
+    }
+    
+    // Use red pin for other search results (like Google Maps)
     const iconUrl = `https://www.google.com/maps/vt/icon/name=assets/icons/spotlight/spotlight_pin_v4_outline-2-medium.png,assets/icons/spotlight/spotlight_pin_v4-2-medium.png,assets/icons/spotlight/spotlight_pin_v4_dot-2-medium.png&highlight=ea4335,c5221f,b31412&scale=2`;
     
     return {
@@ -274,16 +320,28 @@ const MapViewGoogle = ({
             icon={getSearchResultIcon(result)}
             title={result.name}
             onClick={() => {
-              // Notify parent to set this as destination
-              if (onSearchResultClick) {
+              // If it's a parking result, handle it like parking data
+              if (result.type === 'google-parking' && onParkingClick) {
+                onParkingClick({
+                  id: result.id,
+                  name: result.name,
+                  address: result.address,
+                  location: result.location,
+                  rating: result.rating,
+                  availableSpots: null, // Google Places doesn't provide this
+                  capacity: null,
+                  isGoogleParking: true // Flag to indicate this is from Google Places
+                });
+              } else if (onSearchResultClick) {
+                // Other search results
                 onSearchResultClick(result);
               }
             }}
           />
         ))}
 
-        {/* Parking Markers - Show all when searched for "parking" or only selected one */}
-        {(showAllParkingMarkers ? parkingData : parkingData.filter(lot => lot.id === selectedParkingId)).map((lot) => {
+        {/* Parking Markers - Show nearby parking when searched for "parking" or only selected one */}
+        {getNearbyParking().map((lot) => {
           const isSelected = selectedParkingId === lot.id;
           return (
             <Marker
@@ -291,6 +349,7 @@ const MapViewGoogle = ({
               position={{ lat: lot.location[0], lng: lot.location[1] }}
               icon={getParkingMarkerIcon(lot, isSelected)}
               onClick={() => {
+                setSelectedMarker({ type: 'parking', data: lot });
                 if (onParkingClick) {
                   onParkingClick(lot);
                 }
@@ -298,6 +357,8 @@ const MapViewGoogle = ({
             />
           );
         })}
+
+        {/* InfoWindow for Parking Markers - Removed (data shows in sidebar) */}
 
         {/* Report Markers - Only show user-submitted reports */}
         <MarkerClusterer>
