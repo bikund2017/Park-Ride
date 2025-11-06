@@ -2138,11 +2138,6 @@ createdAt: Date
 
 **Real Hardware + Real Code = Real Impact**
 
-  
-
-[🌐 Live Demo](https://park-ride-new1.vercel.app/) • [🐛 Report Bug](https://github.com/bikund2017/Park-Ride/issues) • [✨ Request Feature](https://github.com/bikund2017/Park-Ride/issues) • [📖 Arduino Docs](./arduino/README.md)
-
-  
 
 *Combining IoT hardware with cloud computing to solve real-world parking challenges*
 
