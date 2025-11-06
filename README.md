@@ -201,7 +201,6 @@ Park & Ride+ is a full-stack **IoT web application** that combines **real Arduin
 **Serial Bridge Configuration:**
 
 ```javascript
-
 // arduino-serial-bridge.js
 
 const port = '/dev/ttyUSB0';
@@ -211,7 +210,6 @@ const baudRate = 9600;
 const serverUrl = 'https://park-ride-new1.vercel.app';
 
 const postInterval = 5000; // 5 seconds
-
 ```
 
   
@@ -293,28 +291,6 @@ const postInterval = 5000; // 5 seconds
   
 
 **Metro Lines (10) - Simulated Data:**
-
-- Red Line (Rithala - Shaheed Sthal) - 29 stations
-
-- Blue Line (Dwarka - Noida/Vaishali) - 50 stations
-
-- Yellow Line (Samaypur Badli - HUDA City Centre) - 37 stations
-
-- Green Line (Mundka - Inderlok) - 23 stations
-
-- Violet Line (Kashmere Gate - Raja Nahar Singh) - 34 stations
-
-- Pink Line (Majlis Park - Shiv Vihar) - 38 stations
-
-- Magenta Line (Janakpuri West - Botanical Garden) - 25 stations
-
-- Orange Line (New Delhi - Dwarka) - 6 stations
-
-- Rapid Metro (Sikanderpur - Cyber City) - 5 stations
-
-- Aqua Line (Noida Sector 51 - Depot) - 21 stations
-
-  
 
 **Metro Tracking Features:**
 
@@ -547,11 +523,9 @@ const postInterval = 5000; // 5 seconds
 #### Step 1: Clone Repository
 
 ```bash
-
 git clone https://github.com/bikund2017/Park-Ride.git
 
 cd Park-Ride
-
 ```
 
   
@@ -559,12 +533,9 @@ cd Park-Ride
 ### Step 2: Install Dependencies
 
 ```bash
-
 # Install backend dependencies
 
 npm install
-
-  
 
 # Install frontend dependencies
 
@@ -573,7 +544,6 @@ cd client
 npm install
 
 cd ..
-
 ```
 
   
@@ -639,18 +609,15 @@ cd ..
 ### Step 5: Environment Variables
 
   
-
 **Backend Configuration** (Create `/.env`):
 
 ```env
-
 # Server Configuration
 
 NODE_ENV=development
 
 PORT=3002
 
-  
 
 # Optional: Delhi Transit API
 
@@ -862,19 +829,11 @@ npm run dev
 1. **Find Arduino Port:**
 
 ```bash
-
-# Linux/Mac
+# Linux
 
 ls /dev/tty*
 
-# Look for /dev/ttyUSB0 or /dev/ttyACM0
-
-# Windows
-
-# Check Device Manager → Ports (COM & LPT)
-
-# Look for COM3, COM4, etc.
-
+# Look for /dev/ttyUSB0
 ```
 
   
