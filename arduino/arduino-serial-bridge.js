@@ -1,16 +1,16 @@
+/* eslint-disable no-trailing-spaces */
 import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
 import axios from 'axios';
 
 const CONFIG = {
-  // Serial Port 
+  // Serial Port
   serialPort: '/dev/ttyUSB0',
   baudRate: 9600,
 
-  // Server Configuration - VERCEL DEPLOYMENT
-  serverUrl: 'https://park-ride-new1.vercel.app',  // Your Vercel deployment
+  serverUrl: 'https://park-ride-new1.vercel.app',  
   apiEndpoint: '/api/arduino/parking',
-  
+
   maxRetries: 3,
   retryDelay: 2000  // 2 sec
 };
@@ -25,7 +25,7 @@ function initSerialPort() {
   console.log('🔌 Initializing Serial Connection...');
   console.log(`📡 Port: ${CONFIG.serialPort}`);
   console.log(`⚡ Baud Rate: ${CONFIG.baudRate}`);
-  
+
   port = new SerialPort({
     path: CONFIG.serialPort,
     baudRate: CONFIG.baudRate

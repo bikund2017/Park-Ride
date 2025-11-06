@@ -21,7 +21,6 @@ export default async function handler(req, res) {
     try {
       const snapshot = await db.collection('arduino-parking').get();
       const parkingData = [];
-      
       snapshot.forEach(doc => {
         parkingData.push({
           id: doc.id,
