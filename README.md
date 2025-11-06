@@ -679,7 +679,6 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 **Frontend Configuration** (Create `/client/.env`):
 
 ```env
-
 # Firebase Configuration
 
 VITE_FIREBASE_API_KEY=your_firebase_api_key
@@ -695,11 +694,9 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 
   
-
 # Google Maps API Key
 
 VITE_GOOGLE_MAP_API=your_google_maps_api_key
-
 ```
 
   
@@ -708,45 +705,19 @@ VITE_GOOGLE_MAP_API=your_google_maps_api_key
 
   
 
-**Option 1: Run Separately**
+**Option 1: Run**
 
 ```bash
-
 # Terminal 1 - Backend (Port 3002)
 
 npm run dev
-
-  
 
 # Terminal 2 - Frontend (Port 3000)
 
 cd client
 
 npm run dev
-
 ```
-
-  
-
-**Option 2: Run Concurrently (Recommended)**
-
-```bash
-
-npm run dev:full
-
-```
-
-  
-
-### Step 7: Access Application
-
-- **Frontend:** http://localhost:5173
-
-- **Backend API:** http://localhost:3002
-
-- **Health Check:** http://localhost:3002/api/health
-
-  
 
 ---
 
@@ -1009,7 +980,6 @@ node arduino-serial-bridge.js
 **Option 1: Screen (Linux/Mac)**
 
 ```bash
-
 screen -S arduino-bridge
 
 node arduino-serial-bridge.js
@@ -1017,128 +987,7 @@ node arduino-serial-bridge.js
 # Press Ctrl+A, then D to detach
 
 # Reattach: screen -r arduino-bridge
-
 ```
-
-  
-
-**Option 2: PM2 (Recommended)**
-
-```bash
-
-npm install -g pm2
-
-pm2 start arduino-serial-bridge.js --name arduino-bridge
-
-pm2 save
-
-pm2 startup # Auto-start on boot
-
-```
-
-  
-
-**Option 3: Systemd Service (Linux)**
-
-Create `/etc/systemd/system/arduino-bridge.service`:
-
-```ini
-
-[Unit]
-
-Description=Arduino Serial Bridge
-
-After=network.target
-
-  
-
-[Service]
-
-ExecStart=/usr/bin/node /path/to/Park-Ride/arduino-serial-bridge.js
-
-Restart=always
-
-User=yourusername
-
-WorkingDirectory=/path/to/Park-Ride
-
-  
-
-[Install]
-
-WantedBy=multi-user.target
-
-```
-
-  
-
-Enable and start:
-
-```bash
-
-sudo systemctl enable arduino-bridge
-
-sudo systemctl start arduino-bridge
-
-```
-
-  
-
----
-
-  
-
-### Troubleshooting Arduino Setup
-
-  
-
-**Issue: Port Permission Denied**
-
-```bash
-
-# Linux
-
-sudo usermod -a -G dialout $USER
-
-sudo chmod 666 /dev/ttyUSB0
-
-# Logout and login again
-
-```
-
-  
-
-**Issue: Arduino Not Detected**
-
-- Check USB cable (must be data cable, not charge-only)
-
-- Try different USB port
-
-- Install CH340 drivers (if using clone Arduino)
-
-  
-
-**Issue: Serial Data Garbled**
-
-- Verify baud rate is 9600 in both Arduino code and bridge
-
-- Check for loose connections
-
-- Add delay in Arduino loop
-
-  
-
-**Issue: Data Not Reaching Vercel**
-
-- Check internet connection
-
-- Verify serverUrl in bridge script
-
-- Check Firebase credentials
-
-- Look for error messages in bridge console
-
-  
 
 ---
 
@@ -2125,7 +1974,6 @@ createdAt: Date
 
 ---
 
-  
   
 
 <div align="center">
