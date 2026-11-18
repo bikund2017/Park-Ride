@@ -1,0 +1,34 @@
+node_modules
+.env.local
+.env.development
+.env.test
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+client/node_modules
+client/.env.local
+client/.env.development
+client/.env.test
+client/dist
+uploads/*
+!uploads/.gitkeep
+.eslintcache
+coverage
+.nyc_output
+*.tgz
+*.tar.gz
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Ignore local development server (not needed for Vercel serverless)
+server.js
+nodemon.json
+
+# Ignore services and utils used only by server.js
+services/
+utils/
